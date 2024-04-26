@@ -1,5 +1,7 @@
 import Team from '../models/team.model.js';
 import TeamStats from '../models/teamStats.model.js';
+import fs from 'fs';
+import path from 'path';
 
 const calculatePoints = (teamStats) => {
   const { wins, draws } = teamStats;
@@ -120,4 +122,16 @@ export const getTeamStats = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+export const getSquad = async (req, res, next) => {
+  const squadId = req.params.squadId;
+  const squadName = 'squad-' + squadId + '.pdf';
+  const squadPath = path.join('data', 'squad', squadName);
+  fs.readFile(squadPath, (err, data) => {
+    if (err) {
+      return next(err);
+    }
+    res.send(data);
+  });
 };
