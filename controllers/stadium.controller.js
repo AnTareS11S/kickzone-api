@@ -13,6 +13,13 @@ export const addStadium = async (req, res, next) => {
 export const getStadiums = async (req, res, next) => {
   try {
     const stadiums = await Stadium.find();
+
+    if (!stadiums) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'No stadiums found!' });
+    }
+
     res.status(200).json(stadiums);
   } catch (error) {
     next(error);
@@ -73,6 +80,17 @@ export const deleteStadium = async (req, res, next) => {
     }
     await Stadium.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: 'Stadium deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getStadiumById = async (req, res, next) => {
+  try {
+    const stadium = await Stadium.findById(req.params.stadiumId)
+      .populate('country')
+      .populate('teams');
+    res.status(200).json(stadium);
   } catch (error) {
     next(error);
   }
