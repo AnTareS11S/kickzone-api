@@ -44,7 +44,7 @@ const stadiumSchema = new mongoose.Schema(
     photo: {
       type: String,
       default:
-        'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
+        'https://firebasestorage.googleapis.com/v0/b/futbolistapro.appspot.com/o/avatars%2Fstadium.jpg?alt=media&token=86bfc18b-e2ba-46c5-ab9c-358ec82c7aa0',
     },
     history: {
       type: String,

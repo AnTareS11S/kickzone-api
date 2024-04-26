@@ -24,6 +24,7 @@ export const createCoach = async (req, res, next) => {
 export const getCoachByUserId = async (req, res, next) => {
   try {
     const coach = await Coach.findOne({ user: req.params.id });
+    console.log(coach);
 
     if (!coach) {
       return res
@@ -40,26 +41,13 @@ export const getAllCoaches = async (req, res, next) => {
   try {
     const coaches = await Coach.find();
 
-    const nationalityIds = [
-      ...new Set(coaches.map((coach) => coach.nationality)),
-    ];
+    if (!coaches) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'No coaches found!' });
+    }
 
-    const nationalityName = await Country.find({
-      _id: { $in: nationalityIds },
-    });
-
-    const coachesWithCountryNames = coaches.map((coach) => {
-      const country = nationalityName.find(
-        (country) => String(country._id) === String(coach.nationality)
-      );
-
-      return {
-        ...coach.toObject(),
-        nationality: country ? country.name : '',
-      };
-    });
-
-    res.status(200).json(coachesWithCountryNames);
+    res.status(200).json(coaches);
   } catch (error) {
     next(error);
   }
@@ -72,8 +60,7 @@ export const deleteCoach = async (req, res, next) => {
       return res.status(404).json({ message: 'Coach not found' });
     }
 
-    // Remove coach reference from the associated team
-    const teamId = coach.teams; // Adjust this based on your data model
+    const teamId = coach.teams;
     if (teamId) {
       const team = await Team.findById(teamId);
       if (team) {
@@ -82,7 +69,6 @@ export const deleteCoach = async (req, res, next) => {
       }
     }
 
-    // Delete the coach
     await Coach.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ message: 'Coach deleted successfully' });

@@ -165,7 +165,7 @@ export const getTeamsByLeagueId = async (req, res, next) => {
       return res.status(404).json({ message: 'League not found' });
     }
 
-    const teams = await Team.find({ league: req.params.id });
+    const teams = await Team.find({ league: req.params.id }).populate('league');
 
     res.status(200).json(teams);
   } catch (error) {

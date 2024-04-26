@@ -13,6 +13,13 @@ export const addCountry = async (req, res, next) => {
 export const getAllCountries = async (req, res, next) => {
   try {
     const countries = await Country.find();
+
+    if (!countries) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'No countries found!' });
+    }
+
     res.status(200).json(countries);
   } catch (error) {
     next(error);

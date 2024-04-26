@@ -96,17 +96,14 @@ export const deleteLeague = async (req, res, next) => {
 
 export const getTeamsWithoutLeague = async (req, res, next) => {
   try {
-    const league = await League.findById(req.params.id);
     const teams = await Team.find({});
-    if (!league) {
-      return res.status(404).json({ message: 'League not found' });
-    }
+
     if (!teams) {
       return res.status(404).json({ message: 'Teams not found' });
     }
 
     const filteredTeams = teams.filter((team) => {
-      return !league.teams.includes(team._id.toString());
+      return team.league === null;
     });
 
     res.status(200).json(filteredTeams);
