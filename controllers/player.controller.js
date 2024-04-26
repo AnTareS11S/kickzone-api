@@ -225,35 +225,25 @@ export const getPlayersByCurrentTeam = async (req, res, next) => {
   }
 };
 
-export const getPlayersByIds = async (req, res, next) => {
+export const searchPlayers = async (req, res, next) => {
   try {
-    const playerIds = req.body.playerIds;
+    const search = req.query.q || '';
 
-    if (!playerIds) {
-      return res.status(400).json({ error: 'Player ids are required' });
-    }
-
-    const players = await Player.find({ _id: { $in: playerIds } });
-
-    const positionIds = [...new Set(players.map((player) => player.position))];
-
-    const positionName = await Position.find({
-      _id: { $in: positionIds },
+    const players = await Player.find({
+      $or: [
+        { name: { $regex: search, $options: 'i' } },
+        { surname: { $regex: search, $options: 'i' } },
+      ],
     });
 
-    const playersWithPositionNames = players.map((player) => {
-      const position = positionName.find(
-        (position) => String(position._id) === String(player.position)
-      );
-
-      return {
-        ...player.toObject(),
-        position: position ? position.name : '',
-      };
+    const teams = await Team.find({
+      $or: [{ name: { $regex: search, $options: 'i' } }],
     });
 
-    res.status(200).json(playersWithPositionNames);
+    const playersCount = await Player.countDocuments();
+
+    res.status(200).json({ players, teams, playersCount });
   } catch (error) {
-    console.log(error);
+    next(error);
   }
 };
