@@ -3,9 +3,10 @@ import {
   addPlayer,
   getPlayerById,
   getPlayerByUserId,
-  getPlayersByIds,
   getPlayersByWantedTeam,
+  searchPlayers,
 } from '../controllers/player.controller.js';
+import { getAllPlayersGoalsBySeasonAndLeague } from '../controllers/allPlayerStatsBySeason.controller.js';
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ router.post('/add', addPlayer);
 router.get('/get/:id', getPlayerByUserId);
 router.get('/:id', getPlayerById);
 router.get('/get-wanted-team/:id', getPlayersByWantedTeam);
-router.post('/get-players', getPlayersByIds);
+router.get('/top-stats/:leagueId', getAllPlayersGoalsBySeasonAndLeague);
+router.get('/', searchPlayers);
 
 export default router;

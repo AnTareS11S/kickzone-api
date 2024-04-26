@@ -21,6 +21,7 @@ import {
   checkStadiumName,
   deleteStadium,
   editStadium,
+  getStadiumById,
   getStadiums,
 } from '../controllers/stadium.controller.js';
 import {
@@ -67,6 +68,7 @@ import {
   editSeason,
   getSeasons,
 } from '../controllers/season.controller.js';
+import { buildPDF } from '../utils/pdf-service.js';
 
 const router = express.Router();
 
@@ -75,7 +77,7 @@ router.post('/users/:id/role', setRole);
 router.delete('/users/delete/:id', deleteUser);
 
 router.get('/team', getAllTeams);
-router.get('/teams/no-league/:id', getTeamsWithoutLeague);
+router.get('/teams/no-league', getTeamsWithoutLeague);
 router.post('/team/add', addTeam);
 router.post('/team/edit/:id', editTeam);
 router.post('/team-player/:id/add', addPlayerToTeam);
@@ -98,6 +100,7 @@ router.post('/country/check', checkCountry);
 router.delete('/country/delete/:id', deleteCountry);
 
 router.get('/stadium', getStadiums);
+router.get('/stadium/:stadiumId', getStadiumById);
 router.post('/stadium/add', addStadium);
 router.post('/stadium/edit/:id', editStadium);
 router.post('/stadium/check', checkStadiumName);
