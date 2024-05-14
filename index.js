@@ -11,8 +11,23 @@ import leagueRoutes from './routes/league.routes.js';
 import postRoutes from './routes/post.routes.js';
 import playerRoutes from './routes/player.routes.js';
 import cookieParser from 'cookie-parser';
+import { S3Client } from '@aws-sdk/client-s3';
 
 dotenv.config();
+
+export const bucketName = process.env.BUCKET_NAME;
+const bucketRegion = process.env.BUCKET_REGION;
+const accessKey = process.env.ACCESS_KEY;
+const secretAccessKey = process.env.SECRET_ACCESS_KEY;
+
+export const s3 = new S3Client({
+  accessKeyId: accessKey,
+  credentials: {
+    accessKeyId: accessKey,
+    secretAccessKey: secretAccessKey,
+  },
+  region: bucketRegion,
+});
 
 const app = express();
 
