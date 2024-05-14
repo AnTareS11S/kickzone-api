@@ -7,16 +7,22 @@ const buildPDF = async (dataCallback, endCallback, team) => {
   doc.on('data', dataCallback);
   doc.on('end', endCallback);
 
-  const image = team.logo;
-
   try {
-    await downloadImage(image, '/frontendApiRest/api/utils/images/logo.png');
-    const imageData = fs.readFileSync(
-      '/frontendApiRest/api/utils/images/logo.png'
-    );
+    const image = 'https://d3awt09vrts30h.cloudfront.net/' + team?.logo;
+    await downloadImage(image, './api/utils/images/logo.png');
+    const imageData = fs.readFileSync('./api/utils/images/logo.png');
+
+    const coachImage = fs.readFileSync('./api/utils/images/coach.png');
+
+    const leagueImage = fs.readFileSync('./api/utils/images/league.png');
+
+    const stadiumImage = fs.readFileSync('./api/utils/images/stadium.png');
+
+    const countryImage = fs.readFileSync('./api/utils/images/country.png');
+
+    const foundedImage = fs.readFileSync('./api/utils/images/founded.png');
 
     doc.font('Times-Roman');
-
     doc.fontSize(24).text(team.name, { align: 'center' }, 55);
 
     doc.image(imageData, 472.36, 30, {
@@ -27,28 +33,66 @@ const buildPDF = async (dataCallback, endCallback, team) => {
 
     doc.moveTo(47.64, 125).lineTo(550, 125);
 
+    doc.fontSize(12).font('Times-Roman');
+
     doc
+      .image(leagueImage, 47.64, 130, {
+        fit: [30, 30],
+        align: 'center',
+        valign: 'center',
+      })
       .font('Times-Bold')
-      .fontSize(12)
-      .text('League:', 47.64, 140)
+      .text('League:', 87.64, 145)
       .font('Times-Roman')
-      .text(team.league.name, 97.64, 140)
+      .text(team.league.name, 131.64, 145);
+
+    // Coach
+    doc
+      .image(coachImage, 357.64, 130, {
+        fit: [30, 30],
+        align: 'center',
+        valign: 'center',
+      })
       .font('Times-Bold')
-      .text('Coach:', 147.64, 140)
+      .text('Coach:', 397.64, 145)
       .font('Times-Roman')
-      .text(`${team.coach.name} ${team.coach.surname}`, 192.64, 140)
+      .text(`${team.coach.name} ${team.coach.surname}`, 438.64, 145);
+
+    // Stadium
+    doc
+      .image(stadiumImage, 47.64, 175, {
+        fit: [30, 30],
+        align: 'center',
+        valign: 'center',
+      })
       .font('Times-Bold')
-      .text('Stadium:', 287.64, 140)
+      .text('Stadium:', 87.64, 190)
       .font('Times-Roman')
-      .text(team.stadium.name, 342.64, 140)
+      .text(team.stadium.name, 138.64, 190);
+
+    // Country
+    doc
+      .image(countryImage, 357.64, 175, {
+        fit: [30, 30],
+        align: 'center',
+        valign: 'center',
+      })
       .font('Times-Bold')
-      .text('Country:', 427.64, 140)
+      .text('Country:', 397.64, 190)
       .font('Times-Roman')
-      .text(team.country.name, 482.64, 140)
+      .text(team.country.name, 448.64, 190);
+
+    // Founded
+    doc
+      .image(foundedImage, 47.64, 220, {
+        fit: [30, 30],
+        align: 'center',
+        valign: 'center',
+      })
       .font('Times-Bold')
-      .text('Founded:', 47.64, 165)
+      .text('Founded:', 87.64, 235)
       .font('Times-Roman')
-      .text(team.yearFounded, 100.64, 165);
+      .text(team.yearFounded, 139.64, 235);
 
     // table
     const table = {
@@ -60,11 +104,11 @@ const buildPDF = async (dataCallback, endCallback, team) => {
         { label: 'Age', align: 'center' },
         { label: 'Number', align: 'center' },
       ],
-      rows: team.players.map((player) => [
-        player.name,
-        player.surname,
-        player.age,
-        player.number,
+      rows: team?.players?.map((player) => [
+        player?.name,
+        player?.surname,
+        player?.age,
+        player?.number,
       ]),
     };
 
@@ -77,7 +121,7 @@ const buildPDF = async (dataCallback, endCallback, team) => {
         indexColumn === 0 && doc.addBackground(rectRow, 'blue', 0.1);
       },
       x: 47.64,
-      y: 200,
+      y: 300,
     });
 
     doc.end();
