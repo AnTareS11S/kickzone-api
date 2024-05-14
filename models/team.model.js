@@ -21,7 +21,10 @@ const teamSchema = new mongoose.Schema(
     ],
     logo: {
       type: String,
-      default: '',
+    },
+    logoUrl: {
+      type: String,
+      default: 'https://d3awt09vrts30h.cloudfront.net/team_img_default.png',
     },
     bio: { type: String, default: '' },
     yearFounded: { type: Number, required: true },

@@ -117,10 +117,16 @@ export const getStatsByLeagueId = async (req, res, next) => {
 
       teamStats = teamStats.map((teamStat) => {
         const team = teamMap.get(teamStat.team.toString());
+        if (teamStat.logo) {
+          teamStat.logoUrl =
+            'https://d3awt09vrts30h.cloudfront.net/' + teamStat.logo;
+        } else {
+          teamStat.logoUrl = null;
+        }
         return {
           ...teamStat._doc,
           name: team ? team.name : 'Unknown Team',
-          logo: team ? team.logo : '',
+          logoUrl: team ? team.logoUrl : '',
         };
       });
 
@@ -135,7 +141,7 @@ export const getStatsByLeagueId = async (req, res, next) => {
         teamStats.push({
           name: team.name,
           team: team._id,
-          logo: team.logo,
+          logoUrl: team.logoUrl,
           gamesPlayed: 0,
           wins: 0,
           draws: 0,
@@ -166,6 +172,14 @@ export const getTeamsByLeagueId = async (req, res, next) => {
     }
 
     const teams = await Team.find({ league: req.params.id }).populate('league');
+
+    teams.forEach(async (team) => {
+      if (team.logo) {
+        team.logoUrl = 'https://d3awt09vrts30h.cloudfront.net/' + team.logo;
+      } else {
+        team.logoUrl = null;
+      }
+    });
 
     res.status(200).json(teams);
   } catch (error) {

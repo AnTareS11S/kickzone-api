@@ -28,10 +28,12 @@ const postSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
-    image: {
+    postPhoto: {
       type: String,
-      default:
-        'https://www.contentviewspro.com/wp-content/uploads/2017/07/default_image.png',
+    },
+    imageUrl: {
+      type: String,
+      default: 'https://d3awt09vrts30h.cloudfront.net/default_post_image.webp',
     },
   },
   { timestamps: true }

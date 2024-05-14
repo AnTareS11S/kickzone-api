@@ -34,8 +34,11 @@ const coachSchema = new mongoose.Schema(
     },
     photo: {
       type: String,
+    },
+    imageUrl: {
+      type: String,
       default:
-        'https://firebasestorage.googleapis.com/v0/b/futbolistapro.appspot.com/o/avatars%2Fblank-profile-picture-973460_960_720.webp?alt=media&token=5779eb88-d84b-46f3-bef6-3c2648a8fc9c',
+        'https://d3awt09vrts30h.cloudfront.net/blank-profile-picture.webp',
     },
     nationality: { type: mongoose.Schema.Types.ObjectId, ref: 'Country' },
     trainings: [

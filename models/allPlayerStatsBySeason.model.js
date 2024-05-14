@@ -11,6 +11,10 @@ const allPlayerStatsBySeasonSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Season',
     },
+    team: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Team',
+    },
     league: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'League',
