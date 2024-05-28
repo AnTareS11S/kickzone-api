@@ -2,7 +2,7 @@ import PDFDocument from 'pdfkit-table';
 import fs from 'fs';
 import https from 'https';
 
-const buildPDF = async (dataCallback, endCallback, team) => {
+const buildTeamDetailsPDF = async (dataCallback, endCallback, team) => {
   const doc = new PDFDocument({ size: 'A4', margin: 0 });
   doc.on('data', dataCallback);
   doc.on('end', endCallback);
@@ -130,6 +130,186 @@ const buildPDF = async (dataCallback, endCallback, team) => {
   }
 };
 
+const buildMatchDetailsPDF = async (dataCallback, endCallback, match) => {
+  const doc = new PDFDocument({ size: 'A4', margin: 0 });
+  doc.on('data', dataCallback);
+  doc.on('end', endCallback);
+
+  const createTable = (title, players) => ({
+    title: title + ' players',
+    subtitle: 'List of players',
+    headers: [
+      { label: 'Name', align: 'center' },
+      { label: 'Surname', align: 'center' },
+      { label: 'Age', align: 'center' },
+      { label: 'Number', align: 'center' },
+      { label: 'Goals', align: 'center' },
+      { label: 'Assists', align: 'center' },
+      { label: 'Y.Card', align: 'center' },
+      { label: 'R.Card', align: 'center' },
+      { label: 'Own Goals', align: 'center' },
+      { label: 'Minutes', align: 'center' },
+    ],
+    rows: players.map((player) => [
+      player?.name,
+      player?.surname,
+      player?.age,
+      player?.number,
+      player?.goals,
+      player?.assists,
+      player?.yellowCards,
+      player?.redCards,
+      player?.ownGoals,
+      player?.minutesPlayed,
+    ]),
+  });
+
+  const renderTable = (table, yPosition) => {
+    doc.table(table, {
+      columnsSize: [70, 70, 50, 50, 40, 40, 40, 40, 40, 45],
+      prepareHeader: () => doc.font('Helvetica-Bold').fontSize(9),
+      prepareRow: (row, indexColumn, indexRow, rectRow, rectCell) => {
+        doc.font('Helvetica').fontSize(9);
+        doc.lineWidth(0.5);
+        if (indexColumn < table.headers.length) {
+          doc
+            .moveTo(rectCell.x + rectCell.width, rectCell.y)
+            .lineTo(rectCell.x + rectCell.width, rectCell.y + rectCell.height)
+            .stroke();
+        }
+      },
+
+      x: 47.64,
+      y: yPosition,
+    });
+  };
+
+  try {
+    const homeTeamImage =
+      'https://d3awt09vrts30h.cloudfront.net/' + match?.homeTeam?.logo;
+    await downloadImage(homeTeamImage, './api/utils/images/homeTeamLogo.png');
+    const homeTeamImageData = fs.readFileSync(
+      './api/utils/images/homeTeamLogo.png'
+    );
+
+    const awayTeamImage =
+      'https://d3awt09vrts30h.cloudfront.net/' + match?.awayTeam?.logo;
+
+    await downloadImage(awayTeamImage, './api/utils/images/awayTeamLogo.png');
+    const awayTeamImageData = fs.readFileSync(
+      './api/utils/images/awayTeamLogo.png'
+    );
+
+    doc.image(homeTeamImageData, 47.64, 30, {
+      fit: [60, 60],
+      align: 'center',
+      valign: 'center',
+    });
+
+    doc.fontSize(14).font('Times-Bold').text(match?.homeTeam?.name, 140, 55);
+
+    doc.fontSize(14).font('Times-Bold').text(':', 310, 55);
+
+    doc.fontSize(14).font('Times-Bold').text(match?.awayTeam?.name, 360, 55);
+
+    doc.image(awayTeamImageData, 490, 30, {
+      fit: [60, 60],
+      align: 'center',
+      valign: 'center',
+    });
+
+    doc
+      .fontSize(12)
+      .font('Courier-Oblique')
+      .text(
+        new Date(match?.startDate).toLocaleString('en-US', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+        }),
+        220,
+        100
+      );
+
+    doc.moveTo(47.64, 125).lineTo(550, 125);
+
+    doc.text(
+      'Main Referee: ' +
+        match?.mainReferee?.name +
+        ' ' +
+        match?.mainReferee?.surname,
+      47.64,
+      140
+    );
+
+    doc.text(
+      'First Assistant: ' +
+        match?.firstAssistantReferee?.name +
+        ' ' +
+        match?.firstAssistantReferee?.surname,
+      47.64,
+      170
+    );
+    console.log(match);
+
+    doc.text(
+      'Second Assistant: ' +
+        match?.secondAssistantReferee?.name +
+        ' ' +
+        match?.secondAssistantReferee?.surname,
+      47.64,
+      200
+    );
+
+    doc.text('Stadium: ' + match?.homeTeam?.stadium?.name, 420, 140);
+
+    doc.text('League: ' + match?.league?.name, 420, 170);
+
+    doc.text(match?.season?.name, 420, 200);
+
+    doc.text(
+      'Coach: ' +
+        match?.homeTeam?.coach?.name +
+        ' ' +
+        match?.homeTeam?.coach?.surname,
+      390,
+      270
+    );
+
+    const homeTeamTable = createTable(
+      match?.homeTeam?.name,
+      match?.homeTeam?.players
+    );
+    renderTable(homeTeamTable, 270);
+
+    doc.addPage();
+
+    doc
+      .fontSize(12)
+      .font('Courier-Oblique')
+      .text(
+        'Coach: ' +
+          match?.awayTeam?.coach?.name +
+          ' ' +
+          match?.awayTeam?.coach?.surname,
+        390,
+        70
+      );
+
+    const awayTeamTable = createTable(
+      match?.awayTeam?.name,
+      match?.awayTeam?.players
+    );
+    renderTable(awayTeamTable, 70);
+
+    doc.end();
+  } catch (error) {
+    console.error('Error building PDF:', error);
+  }
+};
+
 const downloadImage = async (url, filePath) => {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(filePath);
@@ -146,4 +326,4 @@ const downloadImage = async (url, filePath) => {
   });
 };
 
-export { buildPDF };
+export { buildTeamDetailsPDF, buildMatchDetailsPDF };
