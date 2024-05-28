@@ -5,14 +5,52 @@ import { errorHandler } from '../utils/error.js';
 
 export const signUp = async (req, res, next) => {
   const { username, email, password } = req.body;
-  const hashedPassword = bcrypt.hashSync(password, 10); // 10 is the salt is the number of rounds of hashing
-  const newUser = new User({ username, email, password: hashedPassword });
+
   try {
-    await newUser
-      .save()
-      .then(() =>
-        res.status(201).json({ message: 'User created successfully' })
-      );
+    const hashedPassword = bcrypt.hashSync(password, 10); // 10 is the salt is the number of rounds of hashing
+    const newUser = new User({ username, email, password: hashedPassword });
+    await newUser.save();
+
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+      expiresIn: '1d',
+    });
+
+    const { password: userPassword, ...rest } = newUser._doc;
+
+    res
+      .cookie('access_token', token, { httpOnly: true })
+      .status(201)
+      .json(rest);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const checkUsername = async (req, res, next) => {
+  const { username } = req.query;
+  try {
+    const user = await User.findOne({ username });
+
+    if (user) {
+      res.status(200).json({ exists: true });
+    } else {
+      res.status(200).json({ exists: false });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const checkEmail = async (req, res, next) => {
+  const { email } = req.query;
+  try {
+    const user = await User.findOne({ email });
+
+    if (user) {
+      res.status(200).json({ exists: true });
+    } else {
+      res.status(200).json({ exists: false });
+    }
   } catch (error) {
     next(error);
   }
@@ -25,9 +63,10 @@ export const signIn = async (req, res, next) => {
     if (!validUser) {
       return next(errorHandler(404, 'User not found'));
     }
+
     const validPassword = await bcrypt.compare(password, validUser.password);
     if (!validPassword) {
-      return next(errorHandler(401, 'Invalid credentials'));
+      return next(errorHandler(403, 'Invalid credentials'));
     }
 
     const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET, {
