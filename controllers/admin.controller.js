@@ -1,6 +1,5 @@
 import User from '../models/user.model.js';
 import Team from '../models/team.model.js';
-import Coach from '../models/coach.model.js';
 import League from '../models/league.model.js';
 
 export const getAllUsers = async (req, res, next) => {
