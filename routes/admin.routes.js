@@ -68,7 +68,14 @@ import {
   editSeason,
   getSeasons,
 } from '../controllers/season.controller.js';
-import { buildPDF } from '../utils/pdf-service.js';
+import upload from '../utils/upload.js';
+import { getAllReferees } from '../controllers/referee.controller.js';
+import {
+  addSponsor,
+  deleteSponsor,
+  editSponsor,
+  getAllSponsors,
+} from '../controllers/sponsor.controller.js';
 
 const router = express.Router();
 
@@ -78,8 +85,8 @@ router.delete('/users/delete/:id', deleteUser);
 
 router.get('/team', getAllTeams);
 router.get('/teams/no-league', getTeamsWithoutLeague);
-router.post('/team/add', addTeam);
-router.post('/team/edit/:id', editTeam);
+router.post('/team/add', upload.single('logo'), addTeam);
+router.post('/team/edit/:id', upload.single('logo'), editTeam);
 router.post('/team-player/:id/add', addPlayerToTeam);
 router.delete('/team/delete/:id', deleteTeam);
 router.delete('/team-player/delete/:id', deletePlayerFromTeam);
@@ -137,5 +144,12 @@ router.get('/season', getSeasons);
 router.post('/season/add', addSeason);
 router.post('/season/edit/:id', editSeason);
 router.delete('/season/delete/:id', deleteSeason);
+
+router.get('/referees', getAllReferees);
+
+router.get('/sponsor', getAllSponsors);
+router.post('/sponsor/add', upload.single('logo'), addSponsor);
+router.post('/sponsor/edit/:id', upload.single('logo'), editSponsor);
+router.delete('/sponsor/delete/:id', deleteSponsor);
 
 export default router;
