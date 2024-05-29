@@ -1,20 +1,31 @@
 import Coach from '../models/coach.model.js';
-import Country from '../models/country.model.js';
 import League from '../models/league.model.js';
 import Player from '../models/player.model.js';
 import Stadium from '../models/stadium.model.js';
-import Position from '../models/position.model.js';
 import Team from '../models/team.model.js';
-import { buildPDF } from '../utils/pdf-service.js';
+import { buildTeamDetailsPDF } from '../utils/pdf-service.js';
 import xlsx from 'node-xlsx';
 import TeamStats from '../models/teamStats.model.js';
 import Match from '../models/match.model.js';
 import Result from '../models/result.model.js';
+import sharp from 'sharp';
+import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
 
 export const addTeam = async (req, res, next) => {
   try {
-    const newTeam = new Team(req.body);
-    console.log(req.body._id);
+    const buffer = await sharp(req.file.buffer)
+      .resize({ fit: 'contain' })
+      .toBuffer();
+
+    const logoName = await uploadImageToS3(buffer, req.file.mimetype);
+
+    const newTeam = new Team({
+      ...req.body,
+      logo: logoName,
+      league: null,
+      coach: null,
+      stadium: null,
+    });
 
     await newTeam.save();
 
@@ -25,7 +36,28 @@ export const addTeam = async (req, res, next) => {
         coach.currentTeam = newTeam._id;
         coach.teams.push(newTeam._id);
         await coach.save();
+
+        newTeam.coach = coach._id;
+        await newTeam.save();
       }
+    } else {
+      newTeam.coach = null;
+      await newTeam.save();
+    }
+
+    if (req.body.stadium) {
+      const stadium = await Stadium.findById(req.body.stadium);
+
+      if (stadium) {
+        stadium.teams.push(newTeam._id);
+        await stadium.save();
+
+        newTeam.stadium = stadium._id;
+        await newTeam.save();
+      }
+    } else {
+      newTeam.stadium = null;
+      await newTeam.save();
     }
 
     res.status(201).json(newTeam);
@@ -35,20 +67,15 @@ export const addTeam = async (req, res, next) => {
 };
 
 export const checkTeamName = async (req, res, next) => {
+  const { name } = req.query;
   try {
-    const { name, isEdit } = req.body;
+    const team = await Team.findOne({ name });
 
-    if (isEdit) {
-      return res.status(200).json({ success: true });
+    if (team) {
+      res.status(200).json({ exists: true });
+    } else {
+      res.status(200).json({ exists: false });
     }
-
-    const existingTeam = await Team.findOne({ name });
-
-    if (existingTeam) {
-      return res.status(200).json({ success: false });
-    }
-
-    res.status(200).json({ success: true });
   } catch (error) {
     next(error);
   }
@@ -56,42 +83,52 @@ export const checkTeamName = async (req, res, next) => {
 
 export const editTeam = async (req, res, next) => {
   try {
-    const team = await Team.findById(req.params.id);
+    let existedTeam = await Team.findOne({ _id: req.params.id });
 
-    if (team) {
-      if (req.body.name && req.body.name !== team.name) {
-        const existingTeam = await Team.findOne({ name: req.body.name });
-        if (existingTeam) {
-          return res
-            .status(200)
-            .json({ success: false, message: 'Team name already exists!' });
-        }
+    if (!existedTeam) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    // Handling logo upload
+    if (req.file && req.file.buffer) {
+      const buffer = await sharp(req.file.buffer)
+        .resize({ fit: 'contain' })
+        .toBuffer();
+      const logoName = await uploadImageToS3(buffer, req.file.mimetype);
+      // Delete previous logo from S3 if it exists
+      if (existedTeam.logo) {
+        await deleteImageFromS3(existedTeam.logo);
       }
+      // Update logo field
+      existedTeam.logo = logoName;
+    }
 
-      if (team.coach) {
-        const oldCoach = await Coach.findById(team.coach);
+    // Handling coach update
+    if (req.body.coach !== undefined) {
+      if (existedTeam.coach) {
+        const oldCoach = await Coach.findById(existedTeam.coach);
         if (oldCoach) {
-          oldCoach.teams.pull(team._id);
+          oldCoach.teams.pull(existedTeam._id);
           await oldCoach.save();
         }
       }
-
-      if (req.body.coach) {
+      if (req.body.coach !== null) {
         const newCoach = await Coach.findById(req.body.coach);
         if (newCoach) {
-          newCoach.currentTeam = team._id;
-          newCoach.teams.push(team._id);
+          newCoach.currentTeam = existedTeam._id;
+          newCoach.teams.push(existedTeam._id);
           await newCoach.save();
         }
       }
-
-      const updatedTeam = await Team.findOneAndUpdate(
-        { _id: req.params.id },
-        { $set: req.body },
-        { new: true }
-      );
-      return res.status(200).json(updatedTeam);
+      // Update coach field
+      existedTeam.coach = req.body.coach;
     }
+
+    // Update other fields of the team
+    Object.assign(existedTeam, req.body);
+    await existedTeam.save();
+
+    return res.status(200).json(existedTeam);
   } catch (error) {
     next(error);
   }
@@ -99,25 +136,26 @@ export const editTeam = async (req, res, next) => {
 
 export const getTeamById = async (req, res, next) => {
   try {
-    const team = await Team.findById(req.params.id);
-    const coach = await Coach.findById(team.coach);
-    const stadium = await Stadium.findById(team.stadium);
-    const league = await League.find({ teams: { $in: [req.params.id] } });
-    const country = await Country.findById(team.country);
+    const team = await Team.findById(req.params.id)
+      .populate('coach', 'name surname currentTeam')
+      .populate('stadium')
+      .populate('league')
+      .populate('country')
+      .populate('sponsor', 'name website');
 
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
     }
 
-    res.status(200).json({
-      ...team._doc,
-      coach: coach
-        ? coach.name + ' ' + coach.surname + ':' + coach._id
-        : 'No coach',
-      stadium: stadium ? stadium.name + ':' + stadium._id : 'No stadium',
-      league: league ? league[0].name : 'No league',
-      country: country ? country.name : 'No country',
-    });
+    if (team.logo) {
+      team.logoUrl = 'https://d3awt09vrts30h.cloudfront.net/' + team.logo;
+    } else {
+      team.logoUrl = null;
+    }
+
+    team.save();
+
+    res.status(200).json(team);
   } catch (error) {
     next(error);
   }
@@ -132,6 +170,14 @@ export const getAllTeams = async (req, res, next) => {
         .status(404)
         .json({ success: false, message: 'No teams found!' });
     }
+
+    teams.forEach(async (team) => {
+      if (team.logo) {
+        team.logoUrl = 'https://d3awt09vrts30h.cloudfront.net/' + team.logo;
+      } else {
+        team.logoUrl = null;
+      }
+    });
 
     res.status(200).json(teams);
   } catch (error) {
@@ -181,23 +227,50 @@ export const deletePlayerFromTeam = async (req, res, next) => {
 };
 
 export const getTeamPDF = async (req, res, next) => {
-  const teamId = req.params.teamId;
-  const team = await Team.findById(teamId)
-    .populate('coach', 'name surname -_id')
-    .populate('stadium', 'name -_id')
-    .populate('country', 'name city capacity -_id')
-    .populate('league', 'name -_id')
-    .populate('players', 'name surname age number -_id');
+  try {
+    const teamId = req.params.teamId;
+    const team = await Team.findById(teamId)
+      .populate('coach', 'name surname -_id')
+      .populate('stadium', 'name -_id')
+      .populate('country', 'name city capacity -_id')
+      .populate('league', 'name -_id')
+      .populate('players', 'name surname age number -_id');
 
-  const stream = res.writeHead(200, {
-    'Content-Type': 'application/pdf',
-    'Content-Disposition': `attachment; filename=${team?.name}.pdf`,
-  });
+    const sanitizedTeamName = sanitizeFileName(team?.name);
 
-  buildPDF(
-    (chunk) => stream.write(chunk),
-    () => stream.end(),
-    team
+    const stream = res.writeHead(200, {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=${sanitizedTeamName}.pdf`,
+    });
+
+    team.name = sanitizedTeamName;
+
+    buildTeamDetailsPDF(
+      (chunk) => stream.write(chunk),
+      () => stream.end(),
+      team
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+const polishToEnglish = {
+  ą: 'a',
+  ć: 'c',
+  ę: 'e',
+  ł: 'l',
+  ń: 'n',
+  ó: 'o',
+  ś: 's',
+  ż: 'z',
+  ź: 'z',
+};
+
+const sanitizeFileName = (fileName) => {
+  return fileName.replace(
+    /[ąćęłńóśżź]/g,
+    (match) => polishToEnglish[match] || match
   );
 };
 
@@ -296,8 +369,6 @@ export const getTeamResults = async (req, res, next) => {
       $and: [{ isCompleted: true }],
       $and: [{ isResultApproved: true }],
     }).populate('homeTeam awayTeam');
-
-    console.log(matches);
 
     const matchesIds = matches.map((match) => match._id);
 
