@@ -11,14 +11,17 @@ const matchSchema = new mongoose.Schema(
     mainReferee: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Referee',
+      default: null,
     },
     firstAssistantReferee: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Referee',
+      default: null,
     },
     secondAssistantReferee: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Referee',
+      default: null,
     },
     endDate: {
       type: Date,
