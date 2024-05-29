@@ -23,13 +23,13 @@ export const addMatchStats = async (req, res, next) => {
       season,
     });
 
-    const match = await Match.findById(matchId);
+    const existedMatch = await Match.findById(matchId);
 
     const exisitingAllPlayerStatsBySeason =
       await AllPlayerStatsBySeason.findOne({
         player,
         season,
-        league: match?.league,
+        league: existedMatch?.league,
       });
 
     if (exisitingPlayerStats) {
@@ -95,7 +95,7 @@ export const addMatchStats = async (req, res, next) => {
       const playerStats = new PlayerStats({
         player,
         season,
-        league: match?.league,
+        league: existedMatch?.league,
       });
 
       playerStats.matchStats.push(matchStats._id);
@@ -105,7 +105,7 @@ export const addMatchStats = async (req, res, next) => {
       const allPlayerStatsBySeason = new AllPlayerStatsBySeason({
         player,
         season,
-        league: match?.league,
+        league: existedMatch?.league,
       });
 
       allPlayerStatsBySeason.playerStats.push(playerStats._id);
@@ -144,12 +144,12 @@ export const removeMatchStatsByMatchId = async (req, res, next) => {
 export const getMatchStatsByMatchId = async (req, res, next) => {
   try {
     const playerStats = await PlayerStats.findOne({
-      player: req.params.playerId,
+      player: req.params?.playerId,
     });
 
     const matchStats = await MatchStats.findOne({
-      match: req.params.id,
-      _id: { $in: playerStats.matchStats },
+      match: req.params?.id,
+      _id: { $in: playerStats?.matchStats },
     });
 
     res.status(200).json(matchStats);
