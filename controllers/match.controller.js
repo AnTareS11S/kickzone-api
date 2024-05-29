@@ -1,5 +1,6 @@
 import League from '../models/league.model.js';
 import Match from '../models/match.model.js';
+import Referee from '../models/referee.model.js';
 import Round from '../models/round.model.js';
 import Team from '../models/team.model.js';
 import moment from 'moment';
@@ -27,10 +28,17 @@ cron.schedule('0 0 * * *', async () => {
 
 export const generateMatchSchedule = async (req, res, next) => {
   try {
+    const { seasonId } = req.body;
     const league = await League.findById(req.params.id);
+    const match = await Match.find({ league: req.params.id });
 
     if (!league) {
       return res.status(404).json({ message: 'League not found' });
+    }
+    if (match.length > 0) {
+      return res.status(405).json({
+        message: 'Schedule is already generated. Delete rounds first',
+      });
     }
 
     const teams = await Team.find({ league: req.params.id });
@@ -41,23 +49,22 @@ export const generateMatchSchedule = async (req, res, next) => {
         .json({ message: 'Not enough teams found to generate schedule' });
     }
 
-    const startDate = moment(req.body?.startDate);
+    const startDate = moment(req.body.startDate);
 
-    if (!startDate.isValid()) {
-      return res.status(400).json({ message: 'Invalid start date' });
-    }
-
-    // Ensure there are enough teams for a proper schedule
-    if (teams.length !== 16) {
-      return res.status(400).json({
-        message: 'Number of teams must be 16 for this schedule',
-      });
+    if (
+      !moment(startDate).isValid() ||
+      moment(startDate).isSameOrBefore(moment(), 'day')
+    ) {
+      throw new Error('Invalid start date');
     }
 
     const shuffledTeams = shuffleArray(teams);
-
     const matches = [];
-    let currentDate = startDate.clone().startOf('week').isoWeekday('Saturday');
+    let currentDate = moment(startDate)
+      .clone()
+      .endOf('week')
+      .add(1, 'day')
+      .isoWeekday('Saturday');
 
     let teamss = [...shuffledTeams];
 
@@ -96,11 +103,12 @@ export const generateMatchSchedule = async (req, res, next) => {
           homeTeam,
           awayTeam,
           league: req.params.id,
-          season: req.body.seasonId,
+          season: seasonId,
           startDate:
             i % 2 === 0 ? matchDateSaturday.toDate() : matchDateSunday.toDate(),
           endDate: generateMatchEndDate(
-            i % 2 === 0 ? matchDateSaturday : matchDateSunday
+            i % 2 === 0 ? matchDateSaturday : matchDateSunday,
+            2
           ),
           round: null,
         });
@@ -130,7 +138,7 @@ export const generateMatchSchedule = async (req, res, next) => {
         )}`,
         startDate: roundStartDate,
         endDate: roundEndDate,
-        season: req.body.seasonId,
+        season: seasonId,
         league: req.params.id,
       });
       round.matches = newMatches
@@ -158,21 +166,13 @@ export const generateMatchSchedule = async (req, res, next) => {
 };
 
 // Function to generate the date and time of a match
-function generateMatchDate(currentDate, round, day) {
-  let matchDate = currentDate.clone().add(round, 'weeks').isoWeekday(day);
-
-  if (matchDate.isBefore(moment(), 'day')) {
-    matchDate = matchDate.add(1, 'week');
-  }
-
-  matchDate = matchDate.hour(Math.floor(Math.random() * 7) + 11).minute(0);
-
-  return matchDate;
+function generateMatchDate(startDate, round, day) {
+  let matchDate = startDate.clone().add(round, 'days').isoWeekday(day);
+  return matchDate.hour(Math.floor(Math.random() * 7) + 11).minute(0);
 }
-
 // Function to generate the end date and time of a match
-function generateMatchEndDate(startDate) {
-  return startDate.clone().add(2, 'hours').toDate();
+function generateMatchEndDate(startDate, matchDuration = 2) {
+  return startDate.clone().add(matchDuration, 'hours').toDate();
 }
 
 // Function to shuffle an array
@@ -256,7 +256,15 @@ export const getMatchesByTeamId = async (req, res, next) => {
       .populate('league', 'name')
       .populate('round', 'name');
 
-    res.status(200).json(matches);
+    const teamOpponents = matches.map((match) => {
+      if (match.homeTeam._id.toString() === req.params.id) {
+        return match.awayTeam;
+      } else {
+        return match.homeTeam;
+      }
+    });
+
+    res.status(200).json({ matches, teamOpponents });
   } catch (error) {
     next(error);
   }
@@ -311,17 +319,22 @@ export const getCompletedMatchesByLeagueId = async (req, res, next) => {
       return res.status(404).json({ message: 'League not found' });
     }
 
-    const matches = await Match.find({
+    const refereeId = await Referee.findOne({ user: req.query.userId }).select(
+      '_id'
+    );
+
+    const refereeMatches = await Match.find({
       league: req.params.id,
-      isResultApproved: false,
       isCompleted: true,
+      isResultApproved: false,
+      mainReferee: refereeId,
     })
       .populate('homeTeam', 'name')
       .populate('awayTeam', 'name')
       .populate('league', 'name')
       .populate('round', 'name');
 
-    res.status(200).json(matches);
+    res.status(200).json(refereeMatches);
   } catch (error) {
     next(error);
   }
@@ -334,16 +347,22 @@ export const getFilledMatchesByLeagueId = async (req, res, next) => {
       return res.status(404).json({ message: 'League not found' });
     }
 
-    const matches = await Match.find({
+    const refereeId = await Referee.findOne({ user: req.query.userId }).select(
+      '_id'
+    );
+
+    const refereeMatches = await Match.find({
       league: req.params.id,
+      isCompleted: true,
       isResultApproved: true,
+      mainReferee: refereeId,
     })
       .populate('homeTeam', 'name')
       .populate('awayTeam', 'name')
       .populate('league', 'name')
       .populate('round', 'name');
 
-    res.status(200).json(matches);
+    res.status(200).json(refereeMatches);
   } catch (error) {
     next(error);
   }
@@ -358,6 +377,32 @@ export const getSeasonByMatchId = async (req, res, next) => {
     }
 
     res.status(200).json(match.season);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getRefereeMatches = async (req, res, next) => {
+  try {
+    const league = await League.findById(req.params.id);
+    if (!league) {
+      return res.status(404).json({ message: 'League not found' });
+    }
+
+    const refereeId = await Referee.findOne({ user: req.query.userId }).select(
+      '_id'
+    );
+
+    const refereeMatches = await Match.find({
+      league: req.params.id,
+      mainReferee: refereeId,
+    })
+      .populate('homeTeam', 'name')
+      .populate('awayTeam', 'name')
+      .populate('league', 'name')
+      .populate('round', 'name');
+
+    res.status(200).json(refereeMatches);
   } catch (error) {
     next(error);
   }
