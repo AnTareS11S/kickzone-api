@@ -19,6 +19,7 @@ const router = express.Router();
 
 router.get('/download-pdf/:teamId', getTeamPDF);
 router.get('/download-xlsx/:leagueId', getTeamStandingsXlsx);
+router.get('/check-team-name', checkTeamName);
 router.get('/:id', getTeamById);
 router.get('/team-stats', getTeamStats);
 router.get('/matches/:id', getMatchesByTeamId);
@@ -26,7 +27,6 @@ router.get('/squad/:squadId', getSquad);
 router.get('/results/:teamId', getTeamResults);
 router.post('/add', addTeam);
 router.post('/add-stat', addTeamStat);
-router.post('/check', checkTeamName);
 router.post('/remove-stat', removeTeamStat);
 
 export default router;
