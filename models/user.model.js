@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema(
         ref: 'Post',
       },
     ],
+    isOnboardingCompleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
