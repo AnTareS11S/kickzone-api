@@ -22,12 +22,6 @@ const refereeSchema = new mongoose.Schema(
       minlength: 2,
       maxlength: 30,
     },
-    teams: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Team',
-      },
-    ],
     photo: {
       type: String,
     },
