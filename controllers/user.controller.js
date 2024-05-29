@@ -2,8 +2,10 @@ import bcrypt from 'bcryptjs';
 import User from '../models/user.model.js';
 import Post from '../models/post.model.js';
 import { errorHandler } from '../utils/error.js';
+import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
+import sharp from 'sharp';
 
-export const updateUser = async (req, res, next) => {
+export const addUser = async (req, res, next) => {
   if (req.user.id !== req.params.id) {
     return next(errorHandler(403, 'You are not authorized to edit this user'));
   }
@@ -13,27 +15,54 @@ export const updateUser = async (req, res, next) => {
       req.body.password = bcrypt.hashSync(req.body.password, 10);
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      {
-        $set: {
-          username: req.body.username,
-          email: req.body.email,
-          password: req.body.password,
-          photo: req.body.photo,
-          bio: req.body.bio,
-        },
-      },
-      { new: true }
-    ); // new: true returns the updated document
-
-    if (!updatedUser) {
-      return res.status(404).json({ error: 'User not found' });
+    if (!req.file || !req.file.buffer) {
+      const existedUser = await User.findById(req.params.id);
+      if (existedUser) {
+        const updatedUser = await User.findByIdAndUpdate(
+          req.params.id,
+          {
+            $set: { ...req.body },
+          },
+          { new: true }
+        );
+        const { password, ...rest } = updatedUser._doc;
+        return res.status(200).json(rest);
+      }
     }
 
-    const { password, ...rest } = updatedUser._doc;
+    const buffer = await sharp(req.file.buffer)
+      .resize({ width: 200, height: 200, fit: 'cover' })
+      .toBuffer();
 
-    res.status(200).json(rest);
+    const photoName = await uploadImageToS3(buffer, req.file.mimetype);
+    const existedUser = await User.findById(req.params.id);
+
+    if (existedUser) {
+      existedUser.photo ? await deleteImageFromS3(existedUser.photo) : null;
+
+      const updatedUser = await User.findByIdAndUpdate(
+        req.params.id,
+        {
+          $set: {
+            ...req.body,
+            photo: photoName,
+          },
+        },
+        { new: true }
+      );
+
+      const { password, ...rest } = updatedUser._doc;
+      return res.status(200).json(rest);
+    }
+
+    const newUser = new User({
+      ...req.body,
+      photo: photoName,
+    });
+
+    await newUser.save();
+    const { password, ...rest } = newUser._doc;
+    res.status(201).json(rest);
   } catch (error) {
     next(error);
   }
@@ -97,24 +126,28 @@ export const getActivity = async (req, res, next) => {
     const replies = await Post.find({
       _id: { $in: childPostIds },
       author: { $ne: req.params.id },
-    }).populate({
-      path: 'author',
-      model: User,
-      select: 'username photo _id',
-    });
+    })
+      .populate({
+        path: 'author',
+        model: User,
+        select: 'username photo _id imageUrl',
+      })
+      .sort({ createdAt: -1 });
 
     const likes = await Post.find({
       _id: { $in: childPostIds },
-      likes: { $ne: [] },
-    }).populate({
-      path: 'likes',
-      model: User,
-      select: 'username photo _id',
-    });
+      likes: { $ne: [req.params.id] },
+    })
+      .populate({
+        path: 'author',
+        model: User,
+        select: 'username photo _id imageUrl',
+      })
+      .where('author')
+      .ne(req.params.id)
+      .sort({ createdAt: -1 });
 
-    const activity = [...replies, ...likes];
-
-    res.status(200).json(activity);
+    res.status(200).json({ replies, likes });
   } catch (error) {
     next(error);
   }
@@ -122,9 +155,43 @@ export const getActivity = async (req, res, next) => {
 
 export const getUserById = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
+    const user = await User.findById(req.params.id)
+      .select('-password')
+      .populate({
+        path: 'posts',
+        model: Post,
+        select: 'title createdAt',
+        options: { sort: { createdAt: -1 } },
+      });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Not found!' });
+    }
+
+    if (user.photo) {
+      user.imageUrl = 'https://d3awt09vrts30h.cloudfront.net/' + user.photo;
+    } else {
+      user.imageUrl = null;
+    }
+
+    user.save();
 
     res.status(200).json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUserComments = async (req, res, next) => {
+  try {
+    const userComments = await Post.find({
+      author: req.params.id,
+      parentId: { $ne: null },
+    })
+      .sort({ createdAt: -1 })
+      .populate({ path: 'author', model: User });
+
+    res.status(200).json(userComments);
   } catch (error) {
     next(error);
   }
