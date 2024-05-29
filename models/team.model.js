@@ -26,6 +26,10 @@ const teamSchema = new mongoose.Schema(
       type: String,
       default: 'https://d3awt09vrts30h.cloudfront.net/team_img_default.png',
     },
+    sponsor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Sponsor',
+    },
     bio: { type: String, default: '' },
     yearFounded: { type: Number, required: true },
     country: {
