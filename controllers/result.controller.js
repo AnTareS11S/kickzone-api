@@ -1,4 +1,6 @@
 import Match from '../models/match.model.js';
+import MatchStats from '../models/matchStats.model.js';
+import PlayerStats from '../models/playerStats.model.js';
 import Result from '../models/result.model.js';
 import TeamStats from '../models/teamStats.model.js';
 
@@ -387,6 +389,80 @@ export const getResultByMatchId = async (req, res, next) => {
       .populate('awayTeam', 'name');
 
     res.status(200).json({ result, match });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getResultDetailsById = async (req, res, next) => {
+  try {
+    const result = await Result.findById(req.params.resultId);
+
+    const match = await Match.findById(result.match)
+      .populate('homeTeam', 'name logo logoUrl')
+      .populate('awayTeam', 'name logo logoUrl')
+      .populate('mainReferee', 'name surname')
+      .populate('firstAssistantReferee', 'name surname')
+      .populate('secondAssistantReferee', 'name surname');
+
+    const homeTeamId = match?.homeTeam?._id;
+    const awayTeamId = match?.awayTeam?._id;
+
+    const matchStats = await MatchStats.find({ match: result.match });
+
+    const matchStatsIds = matchStats.map((stat) => stat._id);
+
+    const homeTeamPlayersStats = await PlayerStats.find({
+      matchStats: { $in: matchStatsIds },
+    })
+      .populate({
+        path: 'player',
+        match: { currentTeam: homeTeamId },
+        select: 'name surname',
+      })
+      .populate({
+        path: 'matchStats',
+        match: { match: result.match },
+        populate: { path: 'match', select: '_id' },
+        select: 'goals yellowCards redCards ownGoals cleanSheets',
+      })
+      .select('player matchStats');
+
+    const filteredHomeTeamPlayersStats = homeTeamPlayersStats.filter(
+      (stats) => {
+        console.log(stats);
+        return stats.player !== null;
+      }
+    );
+
+    const awayTeamPlayersStats = await PlayerStats.find({
+      matchStats: { $in: matchStatsIds },
+    })
+      .populate({
+        path: 'player',
+        match: { currentTeam: awayTeamId },
+        select: 'name surname',
+      })
+      .populate({
+        path: 'matchStats',
+        match: { match: result.match },
+        populate: { path: 'match', select: '_id' },
+        select: 'goals yellowCards redCards ownGoals cleanSheets',
+      })
+      .select('player matchStats');
+
+    const filteredAwayTeamPlayersStats = awayTeamPlayersStats.filter(
+      (stats) => {
+        return stats.player !== null;
+      }
+    );
+
+    res.status(200).json({
+      result,
+      match,
+      filteredHomeTeamPlayersStats,
+      filteredAwayTeamPlayersStats,
+    });
   } catch (error) {
     next(error);
   }
