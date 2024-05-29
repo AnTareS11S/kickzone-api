@@ -4,25 +4,56 @@ import PlayerStats from '../models/playerStats.model.js';
 import Position from '../models/position.model.js';
 import Team from '../models/team.model.js';
 import User from '../models/user.model.js';
+import sharp from 'sharp';
+import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
+import Coach from '../models/coach.model.js';
+import Referee from '../models/referee.model.js';
 
 export const addPlayer = async (req, res, next) => {
   try {
-    const existedPlayer = await Player.findOne({ user: req.body.user });
-
     const user = await User.findById(req.body.user);
     user.role = 'player';
     await user.save();
+    if (!req.file || !req.file.buffer) {
+      const existedPlayer = await Player.findOne({ user: req.body.user });
+      if (existedPlayer) {
+        const updatedPlayer = await Player.findOneAndUpdate(
+          { user: req.body.user },
+          { ...req.body },
+          { new: true }
+        );
+        return res.status(200).json(updatedPlayer);
+      }
+      const newPlayer = new Player({
+        ...req.body,
+      });
+      await newPlayer.save();
+      return res.status(201).json(newPlayer);
+    }
 
+    const buffer = await sharp(req.file.buffer)
+      .resize({ width: 200, height: 200, fit: 'cover' })
+      .toBuffer();
+
+    const photoName = await uploadImageToS3(buffer, req.file.mimetype);
+
+    const existedPlayer = await Player.findOne({ user: req.body.user });
     if (existedPlayer) {
+      existedPlayer.photo
+        ? await deleteImageFromS3(existedPlayer?.photo)
+        : null;
       const updatedPlayer = await Player.findOneAndUpdate(
         { user: req.body.user },
-        { $set: req.body },
+        { ...req.body, photo: photoName },
         { new: true }
       );
       return res.status(200).json(updatedPlayer);
     }
 
-    const newPlayer = new Player(req.body);
+    const newPlayer = new Player({
+      ...req.body,
+      photo: photoName,
+    });
 
     const playerStats = new PlayerStats({
       player: newPlayer._id,
@@ -111,6 +142,16 @@ export const getPlayers = async (req, res, next) => {
 export const getPlayerByUserId = async (req, res, next) => {
   try {
     const player = await Player.findOne({ user: req.params.id });
+    if (!player) {
+      return res.status(404).json({ success: false, message: 'Not found!' });
+    }
+
+    if (player.photo) {
+      player.imageUrl = 'https://d3awt09vrts30h.cloudfront.net/' + player.photo;
+    } else {
+      player.imageUrl = null;
+    }
+
     res.status(200).json(player);
   } catch (error) {
     next(error);
@@ -138,6 +179,12 @@ export const getPlayerById = async (req, res, next) => {
     const teamsNames = await Team.find({ _id: { $in: teamsIds } });
 
     const teamsNamesArray = teamsNames.map((team) => team.name);
+
+    if (player.photo) {
+      player.imageUrl = 'https://d3awt09vrts30h.cloudfront.net/' + player.photo;
+    } else {
+      player.imageUrl = null;
+    }
 
     res.status(200).json({
       ...player.toObject(),
@@ -184,10 +231,14 @@ export const getPlayersByCurrentTeam = async (req, res, next) => {
     const teamId = req.params.id;
 
     if (!teamId) {
-      return res.status(400).json({ error: 'Team id is required' });
+      return res.status(404).json({ error: 'Team id is required' });
     }
 
     const players = await Player.find({ currentTeam: teamId });
+
+    if (!players) {
+      return res.status(404).json({ error: 'Players not found' });
+    }
 
     const nationalityIds = [
       ...new Set(players.map((player) => player.nationality)),
@@ -211,6 +262,13 @@ export const getPlayersByCurrentTeam = async (req, res, next) => {
         (position) => String(position._id) === String(player.position)
       );
 
+      if (player.photo) {
+        player.imageUrl =
+          'https://d3awt09vrts30h.cloudfront.net/' + player.photo;
+      } else {
+        player.imageUrl = null;
+      }
+
       return {
         ...player.toObject(),
         nationality: country ? country.name : '',
@@ -229,20 +287,62 @@ export const searchPlayers = async (req, res, next) => {
   try {
     const search = req.query.q || '';
 
-    const players = await Player.find({
-      $or: [
-        { name: { $regex: search, $options: 'i' } },
-        { surname: { $regex: search, $options: 'i' } },
-      ],
-    });
+    const [players, teams, coaches, referees] = await Promise.all([
+      Player.find({
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { surname: { $regex: search, $options: 'i' } },
+        ],
+      }),
+      Team.find({
+        $or: [{ name: { $regex: search, $options: 'i' } }],
+      }),
+      Coach.find({
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { surname: { $regex: search, $options: 'i' } },
+        ],
+      }),
+      Referee.find({
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { surname: { $regex: search, $options: 'i' } },
+        ],
+      }),
+    ]);
 
-    const teams = await Team.find({
-      $or: [{ name: { $regex: search, $options: 'i' } }],
-    });
+    const setImageUrl = (item) => {
+      if (item.photo) {
+        item.imageUrl = 'https://d3awt09vrts30h.cloudfront.net/' + item.photo;
+      } else {
+        item.imageUrl = null;
+      }
+      return item;
+    };
+
+    const setLogoUrl = (item) => {
+      if (item.logo) {
+        item.logoUrl = 'https://d3awt09vrts30h.cloudfront.net/' + item.logo;
+      } else {
+        item.logoUrl = null;
+      }
+      return item;
+    };
+
+    const modifyPlayers = players.map((player) => setImageUrl(player));
+    const modifyTeams = teams.map((team) => setLogoUrl(team));
+    const modifyCoaches = coaches.map((coach) => setImageUrl(coach));
+    const modifyReferees = referees.map((referee) => setImageUrl(referee));
 
     const playersCount = await Player.countDocuments();
 
-    res.status(200).json({ players, teams, playersCount });
+    res.status(200).json({
+      players: modifyPlayers,
+      teams: modifyTeams,
+      coaches: modifyCoaches,
+      referees: modifyReferees,
+      playersCount,
+    });
   } catch (error) {
     next(error);
   }
