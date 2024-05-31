@@ -111,6 +111,7 @@ export const googleAuth = async (req, res, next) => {
         email: req.body.email,
         password: hashedPassword,
         photo: req.body.photo,
+        isOnboardingCompleted: false,
       });
       await newUser.save();
       const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
