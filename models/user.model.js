@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema(
       },
     ],
     isOnboardingCompleted: { type: Boolean, default: false },
+    wantedRole: { type: String, default: '' },
   },
   { timestamps: true }
 );
