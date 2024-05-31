@@ -79,9 +79,9 @@ import {
 
 const router = express.Router();
 
-router.get('/users', getAllUsers);
+router.get('/user', getAllUsers);
 router.post('/users/:id/role', setRole);
-router.delete('/users/delete/:id', deleteUser);
+router.delete('/user/delete/:id', deleteUser);
 
 router.get('/team', getAllTeams);
 router.get('/teams/no-league', getTeamsWithoutLeague);
