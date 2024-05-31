@@ -8,7 +8,12 @@ export const signUp = async (req, res, next) => {
 
   try {
     const hashedPassword = bcrypt.hashSync(password, 10); // 10 is the salt is the number of rounds of hashing
-    const newUser = new User({ username, email, password: hashedPassword });
+    const newUser = new User({
+      username,
+      email,
+      password: hashedPassword,
+      isOnboardingCompleted: false,
+    });
     await newUser.save();
 
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
@@ -126,6 +131,27 @@ export const signOut = (req, res, next) => {
   try {
     res.clearCookie('access_token');
     res.status(200).json({ message: 'Sign out successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const completeOnboarding = async (req, res, next) => {
+  const { userId, wantedRole, bio, username } = req.body;
+  try {
+    const user = await User.findOneAndUpdate(
+      { _id: userId },
+      { $set: { wantedRole, bio, isOnboardingCompleted: true, username } },
+      { new: true }
+    );
+
+    console.log(user);
+
+    if (!user) {
+      return next(errorHandler(404, 'User not found'));
+    }
+
+    res.status(200).json(user);
   } catch (error) {
     next(error);
   }
