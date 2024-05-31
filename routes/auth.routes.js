@@ -2,6 +2,7 @@ import express from 'express';
 import {
   checkEmail,
   checkUsername,
+  completeOnboarding,
   googleAuth,
   signIn,
   signOut,
@@ -13,6 +14,7 @@ const router = express.Router();
 router.post('/signup', signUp);
 router.post('/signin', signIn);
 router.post('/google-auth', googleAuth);
+router.post('/complete-onboarding', completeOnboarding);
 router.get('/signout', signOut);
 router.get('/check-username', checkUsername);
 router.get('/check-email', checkEmail);
