@@ -60,8 +60,6 @@ export const getRefereeStats = async (req, res) => {
       ],
     }).select('_id');
 
-    console.log(resultId);
-
     refereeStats.matches =
       matchesAsAssistant.length + matchesAsMainReferee.length;
 
