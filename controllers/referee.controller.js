@@ -15,6 +15,7 @@ import {
   TextRun,
   WidthType,
 } from 'docx';
+import RefereeStats from '../models/refereeStats.model.js';
 
 export const addReferee = async (req, res, next) => {
   try {
@@ -57,6 +58,13 @@ export const addReferee = async (req, res, next) => {
       ...req.body,
       photo: photoName,
     });
+
+    const refereeStats = new RefereeStats({
+      referee: newReferee._id,
+    });
+
+    await refereeStats.save();
+
     await newReferee.save();
     res.status(201).json(newReferee);
   } catch (error) {
