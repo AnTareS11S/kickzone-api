@@ -36,6 +36,7 @@ import {
 } from '../controllers/matchStats.controller.js';
 
 import upload from '../utils/upload.js';
+import { getRefereeStats } from '../controllers/refereeStats.controller.js';
 
 const router = express.Router();
 
@@ -57,6 +58,7 @@ router.get('/download-match-details-xlsx/:id', getMatchDetailsXlsx);
 router.get('/download-match-details-docx/:id', getMatchDetailsDocx);
 router.get('/season/:id', getSeasonByMatchId);
 router.get('/result-details/:resultId', getResultDetailsById);
+router.get('/referee-stats/:id', getRefereeStats);
 router.post('/generate-schedule/:id', generateMatchSchedule);
 router.post('/edit-match/:id', editMatch);
 router.post('/add-result', addResult);
