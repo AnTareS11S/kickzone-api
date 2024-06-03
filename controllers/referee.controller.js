@@ -121,7 +121,7 @@ export const getRefereeById = async (req, res, next) => {
 
 export const getAllReferees = async (req, res, next) => {
   try {
-    const referees = await Referee.find();
+    const referees = await Referee.find().populate('nationality');
     if (!referees) {
       return res.status(404).json({ success: false, message: 'Not found!' });
     }
@@ -669,6 +669,25 @@ export const getMatchDetailsDocx = async (req, res, next) => {
     });
 
     res.end(buffer);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteReferee = async (req, res, next) => {
+  try {
+    const referee = await Referee.findById(req.params.id);
+    if (!referee) {
+      return res.status(404).json({ success: false, message: 'Not found!' });
+    }
+
+    if (referee.photo) {
+      await deleteImageFromS3(referee.photo);
+    }
+
+    await Referee.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({ message: 'Referee deleted!' });
   } catch (error) {
     next(error);
   }
