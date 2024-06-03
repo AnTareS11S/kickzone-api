@@ -93,6 +93,10 @@ export const deleteCoach = async (req, res, next) => {
       }
     }
 
+    if (coach.photo) {
+      await deleteImageFromS3(coach.photo);
+    }
+
     await Coach.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ message: 'Coach deleted successfully' });
