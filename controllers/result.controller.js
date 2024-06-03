@@ -430,7 +430,6 @@ export const getResultDetailsById = async (req, res, next) => {
 
     const filteredHomeTeamPlayersStats = homeTeamPlayersStats.filter(
       (stats) => {
-        console.log(stats);
         return stats.player !== null;
       }
     );
