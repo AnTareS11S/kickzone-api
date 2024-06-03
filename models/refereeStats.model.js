@@ -8,8 +8,8 @@ const refereeStatsSchema = new mongoose.Schema({
   },
   matches: {
     type: Number,
-    required: true,
     min: 0,
+    default: 0,
   },
   lastMatchId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -20,13 +20,13 @@ const refereeStatsSchema = new mongoose.Schema({
   },
   yellowCards: {
     type: Number,
-    required: true,
     min: 0,
+    default: 0,
   },
   redCards: {
     type: Number,
-    required: true,
     min: 0,
+    default: 0,
   },
 });
 
