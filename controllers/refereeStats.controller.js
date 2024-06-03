@@ -15,11 +15,17 @@ export const getRefereeStats = async (req, res) => {
         { firstAssistantReferee: refereeId },
         { secondAssistantReferee: refereeId },
       ],
-    });
+      isResultApproved: true,
+    })
+      .populate('homeTeam', 'name')
+      .populate('awayTeam', 'name');
 
-    const matchesAsMainReferee = await Match.find({ mainReferee: refereeId })
-      .populate('homeTeam')
-      .populate('awayTeam');
+    const matchesAsMainReferee = await Match.find({
+      mainReferee: refereeId,
+      isResultApproved: true,
+    })
+      .populate('homeTeam', 'name')
+      .populate('awayTeam', 'name');
 
     const matchesIds = matchesAsMainReferee.map((match) => match._id);
 
@@ -65,10 +71,17 @@ export const getRefereeStats = async (req, res) => {
 
     refereeStats.lastMatchId = resultId;
 
-    refereeStats.lastMatchName =
-      lastMatchAsMainReferee.homeTeam.name +
-      ' vs ' +
-      lastMatchAsMainReferee.awayTeam.name;
+    if (lastMatchAsMainReferee._id) {
+      refereeStats.lastMatchName =
+        lastMatchAsMainReferee.homeTeam?.name +
+        ' vs ' +
+        lastMatchAsMainReferee.awayTeam?.name;
+    } else {
+      refereeStats.lastMatchName =
+        lastMatchAsAssistant.homeTeam?.name +
+        ' vs ' +
+        lastMatchAsAssistant.awayTeam?.name;
+    }
 
     refereeStats.yellowCards = yellowCards;
     refereeStats.redCards = redCards;
