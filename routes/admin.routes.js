@@ -69,7 +69,10 @@ import {
   getSeasons,
 } from '../controllers/season.controller.js';
 import upload from '../utils/upload.js';
-import { getAllReferees } from '../controllers/referee.controller.js';
+import {
+  deleteReferee,
+  getAllReferees,
+} from '../controllers/referee.controller.js';
 import {
   addSponsor,
   deleteSponsor,
@@ -145,7 +148,8 @@ router.post('/season/add', addSeason);
 router.post('/season/edit/:id', editSeason);
 router.delete('/season/delete/:id', deleteSeason);
 
-router.get('/referees', getAllReferees);
+router.get('/referee', getAllReferees);
+router.delete('/referee/delete/:id', deleteReferee);
 
 router.get('/sponsor', getAllSponsors);
 router.post('/sponsor/add', upload.single('logo'), addSponsor);
