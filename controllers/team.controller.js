@@ -3,13 +3,15 @@ import League from '../models/league.model.js';
 import Player from '../models/player.model.js';
 import Stadium from '../models/stadium.model.js';
 import Team from '../models/team.model.js';
-import { buildTeamDetailsPDF } from '../utils/pdf-service.js';
-import xlsx from 'node-xlsx';
+import Sponsor from '../models/sponsor.model.js';
 import TeamStats from '../models/teamStats.model.js';
 import Match from '../models/match.model.js';
 import Result from '../models/result.model.js';
+import { buildTeamDetailsPDF } from '../utils/pdf-service.js';
+import xlsx from 'node-xlsx';
 import sharp from 'sharp';
 import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
+import { isValidObjectId } from 'mongoose';
 
 export const addTeam = async (req, res, next) => {
   try {
@@ -25,6 +27,7 @@ export const addTeam = async (req, res, next) => {
       league: null,
       coach: null,
       stadium: null,
+      sponsor: null,
     });
 
     await newTeam.save();
@@ -83,7 +86,7 @@ export const checkTeamName = async (req, res, next) => {
 
 export const editTeam = async (req, res, next) => {
   try {
-    let existedTeam = await Team.findOne({ _id: req.params.id });
+    const existedTeam = await Team.findOne({ _id: req.params.id });
 
     if (!existedTeam) {
       return res.status(404).json({ error: 'Team not found' });
@@ -104,28 +107,82 @@ export const editTeam = async (req, res, next) => {
     }
 
     // Handling coach update
-    if (req.body.coach !== undefined) {
-      if (existedTeam.coach) {
-        const oldCoach = await Coach.findById(existedTeam.coach);
-        if (oldCoach) {
-          oldCoach.teams.pull(existedTeam._id);
-          await oldCoach.save();
+    if (isValidObjectId(req.body.coach)) {
+      if (req.body.coach !== undefined) {
+        if (existedTeam.coach) {
+          const oldCoach = await Coach.findById(existedTeam.coach);
+          if (oldCoach) {
+            oldCoach.teams.pull(existedTeam._id);
+            await oldCoach.save();
+          }
+        }
+        if (req.body.coach !== null) {
+          const newCoach = await Coach.findById(req.body.coach);
+          if (newCoach) {
+            newCoach.currentTeam = existedTeam._id;
+            newCoach.teams.push(existedTeam._id);
+            await newCoach.save();
+          }
+        }
+        // Update coach field
+        existedTeam.coach = req.body.coach;
+      }
+    }
+
+    if (isValidObjectId(req.body.sponsor)) {
+      if (req.body.sponsor !== undefined) {
+        if (existedTeam.sponsor) {
+          const oldSponsor = await Sponsor.findById(existedTeam.sponsor);
+          if (oldSponsor) {
+            oldSponsor.teams.pull(existedTeam._id);
+            await oldSponsor.save();
+          }
+        }
+        if (req.body.sponsor !== null) {
+          const newSponsor = await Sponsor.findById(req.body.sponsor);
+          if (newSponsor) {
+            newSponsor.teams.push(existedTeam._id);
+            await newSponsor.save();
+          }
+        }
+
+        // Update sponsor field
+        existedTeam.sponsor = req.body.sponsor;
+      }
+    }
+
+    if (isValidObjectId(req.body.stadium)) {
+      if (req.body.stadium !== undefined) {
+        if (existedTeam.stadium) {
+          const oldStadium = await Stadium.findById(existedTeam.stadium);
+          if (oldStadium) {
+            oldStadium.teams.pull(existedTeam._id);
+            await oldStadium.save();
+          }
+        }
+        if (req.body.stadium !== null) {
+          const newStadium = await Stadium.findById(req.body.stadium);
+
+          if (newStadium) {
+            newStadium.teams.push(existedTeam._id);
+            await newStadium.save();
+          }
+
+          // Update stadium field
+          existedTeam.stadium = req.body.stadium;
         }
       }
-      if (req.body.coach !== null) {
-        const newCoach = await Coach.findById(req.body.coach);
-        if (newCoach) {
-          newCoach.currentTeam = existedTeam._id;
-          newCoach.teams.push(existedTeam._id);
-          await newCoach.save();
-        }
-      }
-      // Update coach field
-      existedTeam.coach = req.body.coach;
     }
 
     // Update other fields of the team
-    Object.assign(existedTeam, req.body);
+    Object.assign(
+      existedTeam,
+      req.body.name,
+      req.body.yearFounded,
+      req.body.city,
+      req.body.country,
+      req.body.bio
+    );
     await existedTeam.save();
 
     return res.status(200).json(existedTeam);
