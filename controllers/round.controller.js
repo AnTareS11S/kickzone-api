@@ -9,11 +9,13 @@ import TeamStats from '../models/teamStats.model.js';
 
 export const getRoundByLeagueId = async (req, res, next) => {
   try {
-    const rounds = await Round.find({ league: req.params.id });
+    const rounds = await Round.find({ league: req.params.id }).sort({
+      startDate: 1,
+    });
 
     const matchesIds = rounds.map((round) => round.matches);
 
-    const matchess = await Match.find({ _id: { $in: matchesIds.flat() } })
+    const fetchedMatches = await Match.find({ _id: { $in: matchesIds.flat() } })
       .populate('homeTeam', 'name')
       .populate('awayTeam', 'name')
       .populate('league', 'name')
@@ -23,8 +25,12 @@ export const getRoundByLeagueId = async (req, res, next) => {
       .select('round')
       .select('startDate'); // Only select the startDate field
 
+    fetchedMatches.sort(
+      (a, b) => new Date(a.startDate) - new Date(b.startDate)
+    );
+
     const matchesByRound = rounds.map((round) => {
-      const matches = matchess
+      const matches = fetchedMatches
         .filter((match) => round.matches.includes(match._id.toString()))
         .map(
           ({
