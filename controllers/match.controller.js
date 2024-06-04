@@ -251,6 +251,7 @@ export const getMatchesByTeamId = async (req, res, next) => {
     const matches = await Match.find({
       $or: [{ homeTeam: req.params.id }, { awayTeam: req.params.id }],
     })
+      .sort({ startDate: 1 })
       .populate('homeTeam', 'name')
       .populate('awayTeam', 'name')
       .populate('league', 'name')
