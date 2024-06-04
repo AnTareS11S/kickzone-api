@@ -23,6 +23,12 @@ const sponsorSchema = new mongoose.Schema(
     notes: {
       type: String,
     },
+    teams: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Team',
+      },
+    ],
   },
   {
     timestamps: true,
