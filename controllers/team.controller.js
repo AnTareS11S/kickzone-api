@@ -126,6 +126,8 @@ export const editTeam = async (req, res, next) => {
         }
         // Update coach field
         existedTeam.coach = req.body.coach;
+
+        await existedTeam.save();
       }
     }
 
@@ -148,6 +150,8 @@ export const editTeam = async (req, res, next) => {
 
         // Update sponsor field
         existedTeam.sponsor = req.body.sponsor;
+
+        await existedTeam.save();
       }
     }
 
@@ -170,22 +174,28 @@ export const editTeam = async (req, res, next) => {
 
           // Update stadium field
           existedTeam.stadium = req.body.stadium;
+
+          await existedTeam.save();
         }
       }
     }
 
-    // Update other fields of the team
-    Object.assign(
-      existedTeam,
-      req.body.name,
-      req.body.yearFounded,
-      req.body.city,
-      req.body.country,
-      req.body.bio
+    console.log(req.body);
+    const updatedTeam = await Team.findByIdAndUpdate(
+      {
+        _id: req.params.id,
+      },
+      {
+        name: req.body.name,
+        yearFounded: req.body.yearFounded,
+        bio: req.body.bio,
+        country: req.body.country,
+        city: req.body.city,
+      },
+      { new: true }
     );
-    await existedTeam.save();
 
-    return res.status(200).json(existedTeam);
+    res.status(200).json(updatedTeam);
   } catch (error) {
     next(error);
   }
