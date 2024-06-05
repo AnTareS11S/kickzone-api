@@ -39,16 +39,14 @@ export const editLeague = async (req, res, next) => {
 
 export const checkLeagueName = async (req, res, next) => {
   try {
-    const { name, isEdit } = req.body;
-
-    if (isEdit) {
-      return res.status(200).json({ success: true });
-    }
+    const { name } = req.query;
 
     const existingLeague = await League.findOne({ name });
 
     if (existingLeague) {
-      return res.status(200).json({ success: false });
+      res.status(200).json({ exists: true });
+    } else {
+      res.status(200).json({ exists: false });
     }
 
     res.status(200).json({ success: true });
