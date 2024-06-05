@@ -11,7 +11,6 @@ import {
 } from '../controllers/admin.controller.js';
 import {
   addCountry,
-  checkCountry,
   deleteCountry,
   editCountry,
   getAllCountries,
@@ -80,6 +79,16 @@ import {
   getAllSponsors,
 } from '../controllers/sponsor.controller.js';
 
+const customUpload = (req, res, next) => {
+  if (
+    req.headers['content-type'] &&
+    req.headers['content-type'].startsWith('multipart/form-data')
+  ) {
+    return upload.single('logo')(req, res, next);
+  }
+  next();
+};
+
 const router = express.Router();
 
 router.get('/user', getAllUsers);
@@ -88,8 +97,8 @@ router.delete('/user/delete/:id', deleteUser);
 
 router.get('/team', getAllTeams);
 router.get('/teams/no-league', getTeamsWithoutLeague);
-router.post('/team/add', upload.single('logo'), addTeam);
-router.post('/team/edit/:id', upload.single('logo'), editTeam);
+router.post('/team/add', customUpload, addTeam);
+router.post('/team/edit/:id', customUpload, editTeam);
 router.post('/team-player/:id/add', addPlayerToTeam);
 router.delete('/team/delete/:id', deleteTeam);
 router.delete('/team-player/delete/:id', deletePlayerFromTeam);
@@ -98,27 +107,26 @@ router.get('/coach', getAllCoaches);
 router.delete('/coach/delete/:id', deleteCoach);
 
 router.get('/league', getAllLeagues);
-router.post('/league/add', addLeague);
-router.post('/league/edit/:id', editLeague);
+router.post('/league/add', customUpload, addLeague);
+router.post('/league/edit/:id', customUpload, editLeague);
 router.post('/league/teams', getTeamsByIds);
 router.delete('/league/delete/:id', deleteLeague);
 
 router.get('/country', getAllCountries);
-router.post('/country/add', addCountry);
-router.post('/country/edit/:id', editCountry);
-router.post('/country/check', checkCountry);
+router.post('/country/add', customUpload, addCountry);
+router.post('/country/edit/:id', customUpload, editCountry);
 router.delete('/country/delete/:id', deleteCountry);
 
 router.get('/stadium', getStadiums);
 router.get('/stadium/:stadiumId', getStadiumById);
-router.post('/stadium/add', addStadium);
-router.post('/stadium/edit/:id', editStadium);
+router.post('/stadium/add', customUpload, addStadium);
+router.post('/stadium/edit/:id', customUpload, editStadium);
 router.post('/stadium/check', checkStadiumName);
 router.delete('/stadium/delete/:id', deleteStadium);
 
 router.get('/position', getPositions);
-router.post('/position/add', addPosition);
-router.post('/position/edit/:id', editPosition);
+router.post('/position/add', customUpload, addPosition);
+router.post('/position/edit/:id', customUpload, editPosition);
 router.post('/position/check', checkPosition);
 router.delete('/position/delete/:id', deletePosition);
 
@@ -144,16 +152,16 @@ router.post('/training-type/edit/:id', editTrainingType);
 router.delete('/training-type/delete/:id', deleteTrainingType);
 
 router.get('/season', getSeasons);
-router.post('/season/add', addSeason);
-router.post('/season/edit/:id', editSeason);
+router.post('/season/add', customUpload, addSeason);
+router.post('/season/edit/:id', customUpload, editSeason);
 router.delete('/season/delete/:id', deleteSeason);
 
 router.get('/referee', getAllReferees);
 router.delete('/referee/delete/:id', deleteReferee);
 
 router.get('/sponsor', getAllSponsors);
-router.post('/sponsor/add', upload.single('logo'), addSponsor);
-router.post('/sponsor/edit/:id', upload.single('logo'), editSponsor);
+router.post('/sponsor/add', customUpload, addSponsor);
+router.post('/sponsor/edit/:id', customUpload, editSponsor);
 router.delete('/sponsor/delete/:id', deleteSponsor);
 
 export default router;
