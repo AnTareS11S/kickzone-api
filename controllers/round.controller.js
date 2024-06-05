@@ -1,3 +1,4 @@
+import AllPlayerStatsBySeason from '../models/allPlayerStatsBySeason.model.js';
 import League from '../models/league.model.js';
 import Match from '../models/match.model.js';
 import MatchStats from '../models/matchStats.model.js';
@@ -127,6 +128,16 @@ export const deleteSchedule = async (req, res, next) => {
       return res.status(404).json({ message: 'Matches not found' });
     }
 
+    const deletedPlayerStats = await PlayerStats.deleteMany({
+      league: req.params.id,
+      season: season._id,
+    });
+
+    const deletedAllPlayerStats = await AllPlayerStatsBySeason.deleteMany({
+      league: req.params.id,
+      season: season._id,
+    });
+
     const deletedResults = await Result.deleteMany({
       match: { $in: matches.map((match) => match._id) },
     });
@@ -149,6 +160,8 @@ export const deleteSchedule = async (req, res, next) => {
       deletedMatchStats,
       deletedResults,
       deletedTeamStats,
+      deletedPlayerStats,
+      deletedAllPlayerStats,
     });
   } catch (error) {
     next(error);
