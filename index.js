@@ -10,6 +10,7 @@ import teamRoutes from './routes/team.routes.js';
 import leagueRoutes from './routes/league.routes.js';
 import postRoutes from './routes/post.routes.js';
 import playerRoutes from './routes/player.routes.js';
+import countryRoutes from './routes/country.routes.js';
 import cookieParser from 'cookie-parser';
 import { S3Client } from '@aws-sdk/client-s3';
 
@@ -46,6 +47,7 @@ mongoose
 app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/referee', refereeRoutes);
+app.use('/api/country', countryRoutes);
 app.use('/api/league', leagueRoutes);
 app.use('/api/coach', coachRoutes);
 app.use('/api/player', playerRoutes);
