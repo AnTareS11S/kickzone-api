@@ -9,9 +9,9 @@ import {
 
 const router = express.Router();
 
-router.post('/check', checkLeagueName);
 router.post('/addTeam/:id', addTeamToLeague);
 router.put('/delete/:id', removeTeamFromLeague);
+router.get('/check-league-name', checkLeagueName);
 router.get('/teams-stats/:id', getStatsByLeagueId);
 router.get('/teams/:id', getTeamsByLeagueId);
 
