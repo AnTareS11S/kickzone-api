@@ -86,7 +86,7 @@ export const deleteStadium = async (req, res, next) => {
 export const getStadiumById = async (req, res, next) => {
   try {
     const stadium = await Stadium.findById(req.params.stadiumId)
-      .populate('Stadium')
+      .populate('country')
       .populate('teams');
     res.status(200).json(stadium);
   } catch (error) {
