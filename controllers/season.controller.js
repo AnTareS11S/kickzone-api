@@ -19,6 +19,25 @@ export const getSeasons = async (req, res, next) => {
   }
 };
 
+export const checkSeasonName = async (req, res, next) => {
+  try {
+    const { name, id } = req.query;
+
+    const existingSeason = await Season.findOne({ name });
+    if (existingSeason) {
+      if (id && existingSeason._id.toString() === id) {
+        res.status(200).json({ exists: false });
+      } else {
+        res.status(200).json({ exists: true });
+      }
+    } else {
+      res.status(200).json({ exists: false });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const editSeason = async (req, res, next) => {
   try {
     const season = await Season.findByIdAndUpdate(req.params.id, req.body, {
