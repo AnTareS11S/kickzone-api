@@ -28,15 +28,18 @@ export const getAllCountries = async (req, res, next) => {
 
 export const checkCountryName = async (req, res, next) => {
   try {
-    const { name } = req.query;
+    const { name, id } = req.query;
 
     const existingCountry = await Country.findOne({ name });
     if (existingCountry) {
-      res.status(200).json({ exists: true });
+      if (id && existingCountry._id.toString() === id) {
+        res.status(200).json({ exists: false });
+      } else {
+        res.status(200).json({ exists: true });
+      }
     } else {
       res.status(200).json({ exists: false });
     }
-    res.status(200).json({ success: true });
   } catch (error) {
     next(error);
   }
