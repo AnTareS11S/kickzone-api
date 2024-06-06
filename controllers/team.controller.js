@@ -1,5 +1,4 @@
 import Coach from '../models/coach.model.js';
-import League from '../models/league.model.js';
 import Player from '../models/player.model.js';
 import Stadium from '../models/stadium.model.js';
 import Team from '../models/team.model.js';
@@ -24,7 +23,7 @@ export const addTeam = async (req, res, next) => {
     const newTeam = new Team({
       ...req.body,
       logo: logoName,
-      league: null,
+      Team: null,
       coach: null,
       stadium: null,
       sponsor: null,
@@ -70,12 +69,16 @@ export const addTeam = async (req, res, next) => {
 };
 
 export const checkTeamName = async (req, res, next) => {
-  const { name } = req.query;
   try {
-    const team = await Team.findOne({ name });
+    const { name, id } = req.query;
 
-    if (team) {
-      res.status(200).json({ exists: true });
+    const existingTeam = await Team.findOne({ name });
+    if (existingTeam) {
+      if (id && existingTeam._id.toString() === id) {
+        res.status(200).json({ exists: false });
+      } else {
+        res.status(200).json({ exists: true });
+      }
     } else {
       res.status(200).json({ exists: false });
     }
@@ -180,7 +183,6 @@ export const editTeam = async (req, res, next) => {
       }
     }
 
-    console.log(req.body);
     const updatedTeam = await Team.findByIdAndUpdate(
       {
         _id: req.params.id,
@@ -206,7 +208,7 @@ export const getTeamById = async (req, res, next) => {
     const team = await Team.findById(req.params.id)
       .populate('coach', 'name surname currentTeam')
       .populate('stadium')
-      .populate('league')
+      .populate('Team')
       .populate('country')
       .populate('sponsor', 'name website');
 
@@ -300,7 +302,7 @@ export const getTeamPDF = async (req, res, next) => {
       .populate('coach', 'name surname -_id')
       .populate('stadium', 'name -_id')
       .populate('country', 'name city capacity -_id')
-      .populate('league', 'name -_id')
+      .populate('Team', 'name -_id')
       .populate('players', 'name surname age number -_id');
 
     const sanitizedTeamName = sanitizeFileName(team?.name);
@@ -343,11 +345,11 @@ const sanitizeFileName = (fileName) => {
 
 export const getTeamStandingsXlsx = async (req, res, next) => {
   try {
-    const league = await League.findById(req.params.leagueId);
+    const Team = await Team.findById(req.params.TeamId);
 
-    if (league) {
-      const teams = await Team.find({ _id: { $in: league.teams } });
-      let teamStats = await TeamStats.find({ team: { $in: league.teams } });
+    if (Team) {
+      const teams = await Team.find({ _id: { $in: Team.teams } });
+      let teamStats = await TeamStats.find({ team: { $in: Team.teams } });
 
       const teamMap = new Map(teams.map((team) => [team._id.toString(), team]));
 
@@ -420,7 +422,7 @@ export const getTeamStandingsXlsx = async (req, res, next) => {
 
       res.status(200).end(buffer, 'binary');
     } else {
-      res.status(404).json({ message: 'League not found' });
+      res.status(404).json({ message: 'Team not found' });
     }
   } catch (error) {
     next(error);
