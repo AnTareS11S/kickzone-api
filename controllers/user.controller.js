@@ -16,13 +16,11 @@ export const addUser = async (req, res, next) => {
     }
 
     if (!req.file || !req.file.buffer) {
-      const existedUser = await User.findById(req.params.id);
+      const existedUser = await User.findOne({ _id: req.params.id });
       if (existedUser) {
-        const updatedUser = await User.findByIdAndUpdate(
-          req.params.id,
-          {
-            $set: { ...req.body },
-          },
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: req.params.id },
+          { ...req.body },
           { new: true }
         );
         const { password, ...rest } = updatedUser._doc;
