@@ -25,7 +25,6 @@ import {
 } from '../controllers/stadium.controller.js';
 import {
   addPosition,
-  checkPosition,
   deletePosition,
   editPosition,
   getPositions,
@@ -121,13 +120,11 @@ router.get('/stadium', getStadiums);
 router.get('/stadium/:stadiumId', getStadiumById);
 router.post('/stadium/add', customUpload, addStadium);
 router.post('/stadium/edit/:id', customUpload, editStadium);
-router.post('/stadium/check', checkStadiumName);
 router.delete('/stadium/delete/:id', deleteStadium);
 
 router.get('/position', getPositions);
 router.post('/position/add', customUpload, addPosition);
 router.post('/position/edit/:id', customUpload, editPosition);
-router.post('/position/check', checkPosition);
 router.delete('/position/delete/:id', deletePosition);
 
 router.get('/player', getPlayers);
