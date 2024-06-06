@@ -16,6 +16,7 @@ import {
   WidthType,
 } from 'docx';
 import RefereeStats from '../models/refereeStats.model.js';
+import User from '../models/user.model.js';
 
 export const addReferee = async (req, res, next) => {
   try {
@@ -58,6 +59,12 @@ export const addReferee = async (req, res, next) => {
       ...req.body,
       photo: photoName,
     });
+
+    await User.findOneAndUpdate(
+      { _id: req.body.user },
+      { isProfileFilled: true },
+      { new: true }
+    );
 
     const refereeStats = new RefereeStats({
       referee: newReferee._id,
@@ -684,6 +691,12 @@ export const deleteReferee = async (req, res, next) => {
     if (referee.photo) {
       await deleteImageFromS3(referee.photo);
     }
+
+    await User.findOneAndUpdate(
+      { _id: referee.user },
+      { isProfileFilled: false },
+      { new: true }
+    );
 
     await Referee.findByIdAndDelete(req.params.id);
 
