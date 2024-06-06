@@ -8,6 +8,8 @@ import sharp from 'sharp';
 import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
 import Coach from '../models/coach.model.js';
 import Referee from '../models/referee.model.js';
+import MatchStats from '../models/matchStats.model.js';
+import AllPlayerStatsBySeason from '../models/allPlayerStatsBySeason.model.js';
 
 export const addPlayer = async (req, res, next) => {
   try {
@@ -54,6 +56,12 @@ export const addPlayer = async (req, res, next) => {
       ...req.body,
       photo: photoName,
     });
+
+    await User.findOneAndUpdate(
+      { _id: req.body.user },
+      { isProfileFilled: false },
+      { new: true }
+    );
 
     const playerStats = new PlayerStats({
       player: newPlayer._id,
@@ -200,7 +208,30 @@ export const getPlayerById = async (req, res, next) => {
 
 export const deletePlayer = async (req, res, next) => {
   try {
-    const player = await Player.findOneAndDelete(req.params.id);
+    const player = await Player.findById(req.params.id);
+
+    if (player.photo) {
+      await deleteImageFromS3(player.photo);
+    }
+
+    await User.findOneAndUpdate(
+      { _id: player.user },
+      { isProfileFilled: false },
+      { new: true }
+    );
+
+    const matchStatsIds = await PlayerStats.find({
+      player: req.params.id,
+    });
+
+    await MatchStats.deleteMany({ _id: { $in: matchStatsIds } });
+
+    await PlayerStats.deleteMany({ player: req.params.id });
+
+    await AllPlayerStatsBySeason.deleteMany({ player: req.params.id });
+
+    await Player.findByIdAndDelete(req.params.id);
+
     res.status(200).json(player);
   } catch (error) {
     next(error);
