@@ -208,8 +208,8 @@ export const getTeamById = async (req, res, next) => {
     const team = await Team.findById(req.params.id)
       .populate('coach', 'name surname currentTeam')
       .populate('stadium')
-      .populate('Team')
       .populate('country')
+      .populate('league')
       .populate('sponsor', 'name website');
 
     if (!team) {
@@ -302,7 +302,7 @@ export const getTeamPDF = async (req, res, next) => {
       .populate('coach', 'name surname -_id')
       .populate('stadium', 'name -_id')
       .populate('country', 'name city capacity -_id')
-      .populate('Team', 'name -_id')
+      .populate('league', 'name -_id')
       .populate('players', 'name surname age number -_id');
 
     const sanitizedTeamName = sanitizeFileName(team?.name);
