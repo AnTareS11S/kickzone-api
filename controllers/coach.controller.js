@@ -1,6 +1,7 @@
 import Coach from '../models/coach.model.js';
 import Country from '../models/country.model.js';
 import Team from '../models/team.model.js';
+import User from '../models/user.model.js';
 import sharp from 'sharp';
 import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
 
@@ -42,6 +43,15 @@ export const createCoach = async (req, res, next) => {
       photo: photoName,
       currentTeam: null,
     });
+
+    await User.findByIdAndUpdate(
+      req.body.user,
+      {
+        isProfileFilled: true,
+      },
+      { new: true }
+    );
+
     await newCoach.save();
     res.status(201).json(newCoach);
   } catch (error) {
@@ -96,6 +106,12 @@ export const deleteCoach = async (req, res, next) => {
     if (coach.photo) {
       await deleteImageFromS3(coach.photo);
     }
+
+    await User.findOneAndUpdate(
+      { _id: coach.user },
+      { isProfileFilled: false },
+      { new: true }
+    );
 
     await Coach.findByIdAndDelete(req.params.id);
 
