@@ -28,24 +28,22 @@ export const getStadiums = async (req, res, next) => {
 
 export const checkStadiumName = async (req, res, next) => {
   try {
-    const { name, isEdit } = req.body;
-
-    if (isEdit) {
-      return res.status(200).json({ success: true });
-    }
+    const { name, id } = req.query;
 
     const existingStadium = await Stadium.findOne({ name });
-
     if (existingStadium) {
-      return res.status(200).json({ success: false });
+      if (id && existingStadium._id.toString() === id) {
+        res.status(200).json({ exists: false });
+      } else {
+        res.status(200).json({ exists: true });
+      }
+    } else {
+      res.status(200).json({ exists: false });
     }
-
-    res.status(200).json({ success: true });
   } catch (error) {
     next(error);
   }
 };
-
 export const editStadium = async (req, res, next) => {
   try {
     const stadium = await Stadium.findById(req.params.id);
@@ -88,7 +86,7 @@ export const deleteStadium = async (req, res, next) => {
 export const getStadiumById = async (req, res, next) => {
   try {
     const stadium = await Stadium.findById(req.params.stadiumId)
-      .populate('country')
+      .populate('Stadium')
       .populate('teams');
     res.status(200).json(stadium);
   } catch (error) {
