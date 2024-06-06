@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema(
     ],
     isOnboardingCompleted: { type: Boolean, default: false },
     wantedRole: { type: String, default: '' },
+    isProfileFilled: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
