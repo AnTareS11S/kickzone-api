@@ -36,21 +36,20 @@ export const editPosition = async (req, res, next) => {
   }
 };
 
-export const checkPosition = async (req, res, next) => {
+export const checkPositionName = async (req, res, next) => {
   try {
-    const { name, isEdit } = req.body;
-
-    if (isEdit) {
-      return res.status(200).json({ success: true });
-    }
+    const { name, id } = req.query;
 
     const existingPosition = await Position.findOne({ name });
-
     if (existingPosition) {
-      return res.status(200).json({ success: false });
+      if (id && existingPosition._id.toString() === id) {
+        res.status(200).json({ exists: false });
+      } else {
+        res.status(200).json({ exists: true });
+      }
+    } else {
+      res.status(200).json({ exists: false });
     }
-
-    res.status(200).json({ success: true });
   } catch (error) {
     next(error);
   }
