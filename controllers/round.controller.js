@@ -10,7 +10,10 @@ import TeamStats from '../models/teamStats.model.js';
 
 export const getRoundByLeagueId = async (req, res, next) => {
   try {
-    const rounds = await Round.find({ league: req.params.id }).sort({
+    const rounds = await Round.find({
+      league: req.params.id,
+      season: req.query.seasonId,
+    }).sort({
       startDate: 1,
     });
 
@@ -109,13 +112,19 @@ export const getRoundById = async (req, res, next) => {
 export const deleteSchedule = async (req, res, next) => {
   try {
     const league = await League.findById(req.params.id);
+    const season = await Season.findById(req.query.seasonId);
     if (!league) {
       return res.status(404).json({ message: 'League not found' });
     }
 
-    const season = await Season.findById(league.season);
+    if (!season) {
+      return res.status(404).json({ message: 'Season not found' });
+    }
 
-    const rounds = await Round.find({ league: req.params.id });
+    const rounds = await Round.find({
+      league: req.params.id,
+      season: req.query.seasonId,
+    });
     if (!rounds) {
       return res.status(404).json({ message: 'Rounds not found' });
     }
@@ -128,6 +137,10 @@ export const deleteSchedule = async (req, res, next) => {
       return res.status(404).json({ message: 'Matches not found' });
     }
 
+    const deletedResults = await Result.deleteMany({
+      match: { $in: matches.map((match) => match._id) },
+    });
+
     const deletedPlayerStats = await PlayerStats.deleteMany({
       league: req.params.id,
       season: season._id,
@@ -138,10 +151,6 @@ export const deleteSchedule = async (req, res, next) => {
       season: season._id,
     });
 
-    const deletedResults = await Result.deleteMany({
-      match: { $in: matches.map((match) => match._id) },
-    });
-
     const deletedMatchStats = await MatchStats.deleteMany({
       match: { $in: matches.map((match) => match._id) },
     });
@@ -150,9 +159,15 @@ export const deleteSchedule = async (req, res, next) => {
       match: { $in: matches.map((match) => match._id) },
     });
 
-    const deletedMatches = await Match.deleteMany({ league: req.params.id });
+    const deletedMatches = await Match.deleteMany({
+      league: req.params.id,
+      season: season._id,
+    });
 
-    const deletedRounds = await Round.deleteMany({ league: req.params.id });
+    const deletedRounds = await Round.find({
+      league: req.params.id,
+      season: season._id,
+    });
 
     res.status(201).json({
       deletedMatches,
