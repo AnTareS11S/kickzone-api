@@ -79,7 +79,10 @@ export const signIn = async (req, res, next) => {
     }); // 1d = 1 day
     const { password: userPassword, ...rest } = validUser._doc; // _doc is the document that we get from the database
     res
-      .cookie('access_token', token, { httpOnly: true })
+      .cookie('access_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+      })
       .status(200)
       .json(rest);
   } catch (error) {
