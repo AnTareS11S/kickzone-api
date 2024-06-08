@@ -15,7 +15,7 @@ router.post('/signup', signUp);
 router.post('/signin', signIn);
 router.post('/google-auth', googleAuth);
 router.post('/complete-onboarding', completeOnboarding);
-router.get('/signout', signOut);
+router.post('/signout', signOut);
 router.get('/check-username', checkUsername);
 router.get('/check-email', checkEmail);
 
