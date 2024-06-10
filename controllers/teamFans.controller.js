@@ -31,16 +31,6 @@ export const addTeamFan = async (req, res, next) => {
   }
 };
 
-export const getTeamFansCount = async (req, res, next) => {
-  try {
-    const fansCount = await TeamFans.countDocuments({ team: req.params.id });
-
-    res.status(200).json(fansCount);
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const checkIsTeamFan = async (req, res, next) => {
   try {
     const teamFan = await TeamFans.findOne({
