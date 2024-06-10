@@ -11,6 +11,11 @@ import {
   getAllPlayerStatsByPlayerId,
 } from '../controllers/allPlayerStatsBySeason.controller.js';
 import upload from '../utils/upload.js';
+import {
+  addPlayerFan,
+  checkIsPlayerFan,
+  removePlayerFan,
+} from '../controllers/playerFans.controller.js';
 
 const router = express.Router();
 
@@ -22,5 +27,8 @@ router.get('/get-wanted-team/:id', getPlayersByWantedTeam);
 router.get('/top-stats/:leagueId', getAllPlayersStatsBySeasonAndLeague);
 router.get('/player-top-stats/:playerId', getAllPlayerStatsByPlayerId);
 router.get('/', searchPlayers);
+router.post('/follow/:id', addPlayerFan);
+router.post('/is-fan/:id', checkIsPlayerFan);
+router.post('/unfollow/:id', removePlayerFan);
 
 export default router;
