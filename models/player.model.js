@@ -91,6 +91,12 @@ const playerSchema = new mongoose.Schema(
       default:
         'https://d3awt09vrts30h.cloudfront.net/blank-profile-picture.webp',
     },
+    fans: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'PlayerFans',
+      },
+    ],
     bio: { type: String, default: '' },
   },
   { timestamps: true }
