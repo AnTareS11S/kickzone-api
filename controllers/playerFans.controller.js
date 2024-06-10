@@ -1,7 +1,7 @@
 import Player from '../models/player.model.js';
 import PlayerFans from '../models/playerFans.model.js';
 
-export const addPlyaerFan = async (req, res, next) => {
+export const addPlayerFan = async (req, res, next) => {
   try {
     const existingplayerFan = await PlayerFans.findOne({
       player: req.params.id,
