@@ -36,6 +36,12 @@ const teamSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Country',
     },
+    fans: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TeamFans',
+      },
+    ],
     league: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'League',
