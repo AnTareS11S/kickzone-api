@@ -14,6 +14,11 @@ import {
   removeTeamStat,
 } from '../controllers/teamStats.controller.js';
 import { getMatchesByTeamId } from '../controllers/match.controller.js';
+import {
+  addTeamFan,
+  checkIsTeamFan,
+  removeTeamFan,
+} from '../controllers/teamFans.controller.js';
 
 const router = express.Router();
 
@@ -27,6 +32,9 @@ router.get('/squad/:squadId', getSquad);
 router.get('/results/:teamId', getTeamResults);
 router.post('/add', addTeam);
 router.post('/add-stat', addTeamStat);
+router.post('/follow/:id', addTeamFan);
+router.post('/unfollow/:id', removeTeamFan);
+router.post('/is-fan/:id', checkIsTeamFan);
 router.post('/remove-stat', removeTeamStat);
 
 export default router;
