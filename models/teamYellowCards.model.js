@@ -5,6 +5,10 @@ const teamYellowCardsSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Team',
   },
+  season: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Season',
+  },
   yellowCards: {
     type: Number,
     required: true,
