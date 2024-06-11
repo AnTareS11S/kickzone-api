@@ -2,6 +2,7 @@ import AllPlayerStatsBySeason from '../models/allPlayerStatsBySeason.model.js';
 import Match from '../models/match.model.js';
 import MatchStats from '../models/matchStats.model.js';
 import PlayerStats from '../models/playerStats.model.js';
+import Result from '../models/result.model.js';
 
 export const addMatchStats = async (req, res, next) => {
   try {
@@ -18,18 +19,39 @@ export const addMatchStats = async (req, res, next) => {
       matchId,
     } = req.body;
 
+    const existingMatch = await Match.findById(matchId).populate(
+      'homeTeam awayTeam'
+    );
+
+    const result = await Result.findOne({ match: matchId });
+
+    if (!existingMatch || !result) {
+      return res.status(404).json({ message: 'Match or result not found' });
+    }
+
+    const team = existingMatch.homeTeam.players.includes(player)
+      ? 'homeTeam'
+      : 'awayTeam';
+
+    const totalTeamGoals =
+      team === 'homeTeam' ? result.homeTeamScore : result.awayTeamScore;
+
+    // Fetch all match stats for the match
+    const existingStats = await MatchStats.find({ match: matchId });
+
+    // Calculate total goals for the match
+    const totalGoals = existingStats.reduce((acc, curr) => acc + curr.goals, 0);
+
     const exisitingPlayerStats = await PlayerStats.findOne({
       player,
       season,
     });
 
-    const existedMatch = await Match.findById(matchId);
-
     const exisitingAllPlayerStatsBySeason =
       await AllPlayerStatsBySeason.findOne({
         player,
         season,
-        league: existedMatch?.league,
+        league: existingMatch?.league,
       });
 
     if (exisitingPlayerStats) {
@@ -44,6 +66,26 @@ export const addMatchStats = async (req, res, next) => {
       }
 
       if (isExistingMatchStats) {
+        const existingMatchStats = await MatchStats.findOne({
+          match: matchId,
+          player,
+        });
+
+        // Check if the adjusted total goals exceed the match goals
+        if (existingMatchStats) {
+          // Calculate the new total goals after subtracting the player's current goals
+          const adjustedTotalGoals =
+            totalGoals -
+            parseInt(existingMatchStats.goals, 10) +
+            parseInt(goals, 10);
+
+          // Check if the adjusted total goals exceed the match goals
+          if (adjustedTotalGoals > totalTeamGoals) {
+            return res
+              .status(400)
+              .json({ message: 'Goals exceed match goals' });
+          }
+        }
         let updateFields = {
           goals,
           assists,
@@ -77,25 +119,33 @@ export const addMatchStats = async (req, res, next) => {
         const matchStats = new MatchStats({
           ...req.body,
           match: matchId,
+          player,
         });
+
+        // Check if the new goals exceed the match goals
+        if (totalGoals + parseInt(goals, 10) > totalTeamGoals) {
+          return res.status(400).json({ message: 'Goals exceed match goals' });
+        }
 
         exisitingPlayerStats.matchStats.push(matchStats._id);
 
         await exisitingPlayerStats.save();
 
         await matchStats.save();
+
         res.status(201).json(matchStats);
       }
     } else {
       const matchStats = new MatchStats({
         ...req.body,
         match: matchId,
+        player,
       });
 
       const playerStats = new PlayerStats({
         player,
         season,
-        league: existedMatch?.league,
+        league: existingMatch?.league,
       });
 
       playerStats.matchStats.push(matchStats._id);
@@ -105,7 +155,7 @@ export const addMatchStats = async (req, res, next) => {
       const allPlayerStatsBySeason = new AllPlayerStatsBySeason({
         player,
         season,
-        league: existedMatch?.league,
+        league: existingMatch?.league,
       });
 
       allPlayerStatsBySeason.playerStats.push(playerStats._id);
