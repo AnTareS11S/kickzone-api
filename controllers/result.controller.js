@@ -39,6 +39,7 @@ export const addResult = async (req, res, next) => {
     const homeTeamStats = new TeamStats({
       team: homeTeam.homeTeam?._id,
       match: req.body.match,
+      season: req.body.season,
       gamesPlayed: 1,
       wins: homeTeamScore > awayTeamScore ? 1 : 0,
       draws: homeTeamScore === awayTeamScore ? 1 : 0,
@@ -54,6 +55,7 @@ export const addResult = async (req, res, next) => {
     const awayTeamStats = new TeamStats({
       team: awayTeam.awayTeam?._id,
       match: req.body.match,
+      season: req.body.season,
       gamesPlayed: 1,
       wins: awayTeamScore > homeTeamScore ? 1 : 0,
       draws: awayTeamScore === homeTeamScore ? 1 : 0,
@@ -75,9 +77,11 @@ export const addResult = async (req, res, next) => {
 
     const existingHomeTeamStats = await TeamStats.findOne({
       team: homeTeam.homeTeam?._id,
+      season: req.body.season,
     });
     const existingAwayTeamStats = await TeamStats.findOne({
       team: awayTeam.awayTeam?._id,
+      season: req.body.season,
     });
 
     if (existingHomeTeamStats) {
