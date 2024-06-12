@@ -148,6 +148,10 @@ export const addMatchStats = async (req, res, next) => {
         league: existingMatch?.league,
       });
 
+      if (totalGoals + parseInt(goals, 10) > totalTeamGoals) {
+        return res.status(400).json({ message: 'Goals exceed match goals' });
+      }
+
       playerStats.matchStats.push(matchStats._id);
 
       await playerStats.save();
