@@ -4,7 +4,7 @@ import TeamGoals from '../models/teamGoals.model.js';
 import TeamRedCards from '../models/teamRedCards.model.js';
 import TeamYellowCards from '../models/teamYellowCards.model.js';
 
-export const getTeamRedCards = async (req, res, next) => {
+export const getTeamCardsAndGoals = async (req, res, next) => {
   try {
     const team = await Team.findById(req.params.teamId).populate({
       path: 'league',
