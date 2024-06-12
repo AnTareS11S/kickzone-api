@@ -19,7 +19,8 @@ import {
   checkIsTeamFan,
   removeTeamFan,
 } from '../controllers/teamFans.controller.js';
-import { getTeamCardsAndGoals } from '../controllers/teamCardsAndGoals.controller.js';
+import { getTeamCards } from '../controllers/teamCards.controller.js';
+import { getTeamGoals } from '../controllers/teamGoals.controller.js';
 
 const router = express.Router();
 
@@ -31,7 +32,8 @@ router.get('/team-stats', getTeamStats);
 router.get('/matches/:id', getMatchesByTeamId);
 router.get('/squad/:squadId', getSquad);
 router.get('/results/:teamId', getTeamResults);
-router.get('/team-cards-goals/:teamId', getTeamCardsAndGoals);
+router.get('/team-cards/:teamId', getTeamCards);
+router.get('/team-goals/:teamId', getTeamGoals);
 router.post('/add', addTeam);
 router.post('/add-stat', addTeamStat);
 router.post('/follow/:id', addTeamFan);
