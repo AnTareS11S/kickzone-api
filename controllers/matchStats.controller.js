@@ -68,6 +68,7 @@ export const addMatchStats = async (req, res, next) => {
       if (isExistingMatchStats) {
         const existingMatchStats = await MatchStats.findOne({
           match: matchId,
+          season,
           player,
         });
 
@@ -119,6 +120,7 @@ export const addMatchStats = async (req, res, next) => {
         const matchStats = new MatchStats({
           ...req.body,
           match: matchId,
+          season,
           player,
         });
 
@@ -139,6 +141,7 @@ export const addMatchStats = async (req, res, next) => {
       const matchStats = new MatchStats({
         ...req.body,
         match: matchId,
+        season,
         player,
       });
 
