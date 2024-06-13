@@ -21,6 +21,7 @@ import {
 } from '../controllers/teamFans.controller.js';
 import { getTeamCards } from '../controllers/teamCards.controller.js';
 import { getTeamGoals } from '../controllers/teamGoals.controller.js';
+import { getTeamOutcomes } from '../controllers/teamOutcomes.controller.js';
 
 const router = express.Router();
 
@@ -34,6 +35,7 @@ router.get('/squad/:squadId', getSquad);
 router.get('/results/:teamId', getTeamResults);
 router.get('/team-cards/:teamId', getTeamCards);
 router.get('/team-goals/:teamId', getTeamGoals);
+router.get('/team-outcomes/:teamId', getTeamOutcomes);
 router.post('/add', addTeam);
 router.post('/add-stat', addTeamStat);
 router.post('/follow/:id', addTeamFan);
