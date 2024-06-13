@@ -102,7 +102,10 @@ export const getStatsByLeagueId = async (req, res, next) => {
 
     if (league) {
       const teams = await Team.find({ _id: { $in: league.teams } });
-      let teamStats = await TeamStats.find({ team: { $in: league.teams } });
+      let teamStats = await TeamStats.find({
+        team: { $in: league.teams },
+        season: league.season,
+      });
 
       const teamMap = new Map(teams.map((team) => [team._id.toString(), team]));
 
