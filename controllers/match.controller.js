@@ -243,13 +243,17 @@ export const deleteMatchesByLeagueId = async (req, res, next) => {
 
 export const getMatchesByTeamId = async (req, res, next) => {
   try {
-    const team = await Team.findById(req.params.id);
+    const team = await Team.findById(req.params.id).populate(
+      'league',
+      'season'
+    );
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
     }
 
     const matches = await Match.find({
       $or: [{ homeTeam: req.params.id }, { awayTeam: req.params.id }],
+      season: req.query.season ? req.query.season : team.league.season,
     })
       .sort({ startDate: 1 })
       .populate('homeTeam', 'name')
