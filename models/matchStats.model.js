@@ -10,6 +10,10 @@ const matchStatsSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Player',
     },
+    season: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Season',
+    },
     minutesPlayed: {
       type: Number,
       trim: true,
