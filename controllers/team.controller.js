@@ -11,6 +11,7 @@ import xlsx from 'node-xlsx';
 import sharp from 'sharp';
 import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
 import { isValidObjectId } from 'mongoose';
+import League from '../models/league.model.js';
 
 export const addTeam = async (req, res, next) => {
   try {
@@ -345,11 +346,11 @@ const sanitizeFileName = (fileName) => {
 
 export const getTeamStandingsXlsx = async (req, res, next) => {
   try {
-    const Team = await Team.findById(req.params.TeamId);
+    const league = await League.findById(req.params.leagueId);
 
-    if (Team) {
-      const teams = await Team.find({ _id: { $in: Team.teams } });
-      let teamStats = await TeamStats.find({ team: { $in: Team.teams } });
+    if (league) {
+      const teams = await Team.find({ _id: { $in: league.teams } });
+      let teamStats = await TeamStats.find({ team: { $in: league.teams } });
 
       const teamMap = new Map(teams.map((team) => [team._id.toString(), team]));
 
