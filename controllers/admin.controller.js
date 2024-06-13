@@ -1,6 +1,7 @@
 import User from '../models/user.model.js';
 import Team from '../models/team.model.js';
 import League from '../models/league.model.js';
+import Season from '../models/season.model.js';
 
 export const getAllUsers = async (req, res, next) => {
   try {
@@ -43,7 +44,7 @@ export const getAllTeams = async (req, res, next) => {
   try {
     const teams = await Team.find({}).populate('coach').sort({ createdAt: -1 });
 
-    // Pobierz dane trenerów dla każdego zespołu
+    // Get coach name and surname
     const teamsWithCoaches = teams.map((team) => {
       const { name, surname } = team.coach;
       return {
@@ -75,7 +76,22 @@ export const getAllLeagues = async (req, res, next) => {
   try {
     const leagues = await League.find({}).populate('teams').sort({ name: 1 });
 
-    res.status(200).json(leagues);
+    const seasons = await Season.find({});
+
+    const seasonMap = seasons.reduce((map, season) => {
+      map[season._id.toString()] = season.name;
+
+      return map;
+    }, {});
+
+    const leaguesWithSeasonNames = leagues.map((league) => {
+      return {
+        ...league.toObject(),
+        seasonName: seasonMap[league.season.toString()] || 'Unknown Season',
+      };
+    });
+
+    res.status(200).json(leaguesWithSeasonNames);
   } catch (error) {
     next(error);
   }
