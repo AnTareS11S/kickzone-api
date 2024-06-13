@@ -29,8 +29,8 @@ cron.schedule('0 0 * * *', async () => {
 export const generateMatchSchedule = async (req, res, next) => {
   try {
     const { seasonId } = req.body;
-    const league = await League.findById(req.params.id);
-    const match = await Match.find({ league: req.params.id });
+    const league = await League.find({ _id: req.params.id, season: seasonId });
+    const match = await Match.find({ league: req.params.id, season: seasonId });
 
     if (!league) {
       return res.status(404).json({ message: 'League not found' });
