@@ -76,6 +76,14 @@ export const getAllLeagues = async (req, res, next) => {
   try {
     const leagues = await League.find({}).populate('teams').sort({ name: 1 });
 
+    if (req.query.season) {
+      const leagues = await League.find({ season: req.query.season })
+        .populate('teams')
+        .sort({ name: 1 });
+
+      return res.status(200).json(leagues);
+    }
+
     const seasons = await Season.find({});
 
     const seasonMap = seasons.reduce((map, season) => {
