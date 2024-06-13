@@ -1,3 +1,4 @@
+import League from '../models/league.model.js';
 import MatchStats from '../models/matchStats.model.js';
 import Team from '../models/team.model.js';
 import TeamRedCards from '../models/teamRedCards.model.js';
@@ -5,14 +6,16 @@ import TeamYellowCards from '../models/teamYellowCards.model.js';
 
 export const getTeamCards = async (req, res, next) => {
   try {
-    const team = await Team.findById(req.params.teamId).populate({
-      path: 'league',
-      select: 'name',
-      populate: {
-        path: 'season',
-        select: 'name',
-      },
-    });
+    const team = await Team.findById(req.params.teamId).populate(
+      'league',
+      'season'
+    );
+
+    const league = await League.findOne({
+      season: req.query.season ? req.query.season : team?.league?.season,
+    })
+      .populate('season', 'name')
+      .select('name');
 
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
@@ -22,11 +25,13 @@ export const getTeamCards = async (req, res, next) => {
 
     const teamRedCards = await MatchStats.find({
       player: { $in: teamPlayers },
+      season: req.query.season ? req.query.season : league?.season,
       redCards: { $gt: 0 },
     });
 
     const teamYellowCards = await MatchStats.find({
       player: { $in: teamPlayers },
+      season: req.query.season ? req.query.season : league?.season,
       yellowCards: { $gt: 0 },
     });
 
@@ -40,12 +45,12 @@ export const getTeamCards = async (req, res, next) => {
 
     const existingTeamRedCards = await TeamRedCards.findOne({
       team: req.params.teamId,
-      season: team?.league?.season,
+      season: req.query.season ? req.query.season : league?.season,
     });
 
     const existingTeamYellowCards = await TeamYellowCards.findOne({
       team: req.params.teamId,
-      season: team?.league?.season,
+      season: req.query.season ? req.query.season : league?.season,
     });
 
     if (existingTeamRedCards) {
@@ -55,7 +60,7 @@ export const getTeamCards = async (req, res, next) => {
       await TeamRedCards.create({
         team: req.params.teamId,
         redCards: redCardsCount,
-        season: team?.league?.season,
+        season: req.query.season ? req.query.season : league?.season,
       });
     }
 
@@ -66,22 +71,22 @@ export const getTeamCards = async (req, res, next) => {
       await TeamYellowCards.create({
         team: req.params.teamId,
         yellowCards: yellowCardsCount,
-        season: team?.league?.season,
+        season: req.query.season ? req.query.season : league?.season,
       });
     }
 
     res.status(200).json({
       redCards: [
         {
-          league: team?.league?.name,
-          season: team?.league?.season?.name,
+          league: league?.name,
+          season: league?.season?.name,
           count: redCardsCount,
         },
       ],
       yellowCards: [
         {
-          league: team?.league?.name,
-          season: team?.league?.season?.name,
+          league: league?.name,
+          season: league?.season?.name,
           count: yellowCardsCount,
         },
       ],
