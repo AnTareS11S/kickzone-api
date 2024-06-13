@@ -17,14 +17,6 @@ export const editLeague = async (req, res, next) => {
     const league = await League.findById(req.params.id);
 
     if (league) {
-      if (req.body.name && req.body.name !== league.name) {
-        const existingLeague = await League.findOne({ name: req.body.name });
-        if (existingLeague) {
-          return res
-            .status(200)
-            .json({ success: false, message: 'League name already exists!' });
-        }
-      }
       const updatedLeague = await League.findOneAndUpdate(
         { _id: req.params.id },
         { $set: req.body },
@@ -39,9 +31,9 @@ export const editLeague = async (req, res, next) => {
 
 export const checkLeagueName = async (req, res, next) => {
   try {
-    const { name, id } = req.query;
+    const { name, id, season } = req.query;
 
-    const existingLeague = await League.findOne({ name });
+    const existingLeague = await League.findOne({ name, season });
     if (existingLeague) {
       if (id && existingLeague._id.toString() === id) {
         res.status(200).json({ exists: false });
