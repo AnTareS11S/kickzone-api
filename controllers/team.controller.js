@@ -433,10 +433,15 @@ export const getTeamResults = async (req, res, next) => {
   try {
     const teamId = req.params.teamId;
 
+    const team = await Team.findById(teamId)
+      .populate('league', 'season')
+      .select('league');
+
     const matches = await Match.find({
       $or: [{ homeTeam: teamId }, { awayTeam: teamId }],
       $and: [{ isCompleted: true }],
       $and: [{ isResultApproved: true }],
+      season: req.query.season ? req.query.season : team.league.season,
     }).populate('homeTeam awayTeam');
 
     const matchesIds = matches.map((match) => match._id);
