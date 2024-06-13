@@ -20,9 +20,8 @@ export const getTeamGoals = async (req, res, next) => {
 
     const teamGoals = await TeamStats.find({
       team: req.params.teamId,
-      season: team?.league?.season?._id,
+      season: req.query.season ? req.query.season : team?.league?.season?._id,
     });
-    console.log(teamGoals);
 
     const goalsLostCount = teamGoals.reduce((acc, curr) => {
       return acc + curr.goalsAgainst;
@@ -32,16 +31,14 @@ export const getTeamGoals = async (req, res, next) => {
       return acc + curr.goalsFor;
     }, 0);
 
-    console.log(goalsLostCount, goalsScoredCount);
-
     const existingTeamGoalsScored = await TeamGoalsScored.findOne({
       team: req.params.teamId,
-      season: team?.league?.season,
+      season: req.query.season ? req.query.season : team?.league?.season,
     });
 
     const existingTeamGoalsLost = await TeamGoalsLost.findOne({
       team: req.params.teamId,
-      season: team?.league?.season,
+      season: req.query.season ? req.query.season : team?.league?.season,
     });
 
     if (existingTeamGoalsScored) {
@@ -51,7 +48,7 @@ export const getTeamGoals = async (req, res, next) => {
       await TeamGoalsScored.create({
         team: req.params.teamId,
         goals: goalsScoredCount,
-        season: team?.league?.season,
+        season: req.query.season ? req.query.season : team?.league?.season,
       });
     }
 
@@ -62,7 +59,7 @@ export const getTeamGoals = async (req, res, next) => {
       await TeamGoalsLost.create({
         team: req.params.teamId,
         goals: goalsLostCount,
-        season: team?.league?.season,
+        season: req.query.season ? req.query.season : team?.league?.season,
       });
     }
 
