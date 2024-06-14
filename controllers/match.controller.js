@@ -28,8 +28,9 @@ cron.schedule('0 0 * * *', async () => {
 
 export const generateMatchSchedule = async (req, res, next) => {
   try {
-    const { seasonId } = req.body;
-    const league = await League.find({ _id: req.params.id, season: seasonId });
+    const league = await League.find({ _id: req.params.id });
+    const seasonId = league.season;
+
     const match = await Match.find({ league: req.params.id, season: seasonId });
 
     if (!league) {
@@ -324,6 +325,8 @@ export const getCompletedMatchesByLeagueId = async (req, res, next) => {
       return res.status(404).json({ message: 'League not found' });
     }
 
+    const season = league?.season;
+
     const refereeId = await Referee.findOne({ user: req.query.userId }).select(
       '_id'
     );
@@ -333,6 +336,7 @@ export const getCompletedMatchesByLeagueId = async (req, res, next) => {
       isCompleted: true,
       isResultApproved: false,
       mainReferee: refereeId,
+      season,
     })
       .populate('homeTeam', 'name')
       .populate('awayTeam', 'name')
@@ -352,6 +356,8 @@ export const getFilledMatchesByLeagueId = async (req, res, next) => {
       return res.status(404).json({ message: 'League not found' });
     }
 
+    const season = league?.season;
+
     const refereeId = await Referee.findOne({ user: req.query.userId }).select(
       '_id'
     );
@@ -361,6 +367,7 @@ export const getFilledMatchesByLeagueId = async (req, res, next) => {
       isCompleted: true,
       isResultApproved: true,
       mainReferee: refereeId,
+      season,
     })
       .populate('homeTeam', 'name')
       .populate('awayTeam', 'name')
@@ -401,6 +408,7 @@ export const getRefereeMatches = async (req, res, next) => {
     const refereeMatches = await Match.find({
       league: req.params.id,
       mainReferee: refereeId,
+      season: league.season,
     })
       .populate('homeTeam', 'name')
       .populate('awayTeam', 'name')
