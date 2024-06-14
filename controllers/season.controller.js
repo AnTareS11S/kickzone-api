@@ -1,3 +1,4 @@
+import League from '../models/league.model.js';
 import Season from '../models/season.model.js';
 
 export const addSeason = async (req, res, next) => {
@@ -59,6 +60,24 @@ export const deleteSeason = async (req, res, next) => {
       return res.status(404).json({ message: 'Season not found' });
     }
     res.status(200).json(season);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getSeasonByLeagueId = async (req, res, next) => {
+  try {
+    const league = await League.findById(req.params.leagueId).populate(
+      'season'
+    );
+    if (!league) {
+      return res.status(404).json({ message: 'League not found' });
+    }
+
+    const season = league.season;
+    const leagueName = league.name;
+
+    res.status(200).json({ season, leagueName });
   } catch (error) {
     next(error);
   }
