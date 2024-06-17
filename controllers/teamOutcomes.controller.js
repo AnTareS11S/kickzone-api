@@ -23,16 +23,19 @@ export const getTeamOutcomes = async (req, res, next) => {
     const existingTeamWins = await TeamWins.findOne({
       team: req.params.teamId,
       season: req.query.season,
+      league: teamStats.league,
     });
 
     const existingTeamDraws = await TeamDraws.findOne({
       team: req.params.teamId,
       season: req.query.season,
+      league: teamStats.league,
     });
 
     const existingTeamLosses = await TeamLosses.findOne({
       team: req.params.teamId,
       season: req.query.season,
+      league: teamStats.league,
     });
 
     if (existingTeamWins) {
@@ -43,6 +46,7 @@ export const getTeamOutcomes = async (req, res, next) => {
         team: req.params.teamId,
         wins: teamWins,
         season: req.query.season,
+        league: teamStats.league,
       });
     }
 
@@ -54,6 +58,7 @@ export const getTeamOutcomes = async (req, res, next) => {
         team: req.params.teamId,
         draws: teamDraws,
         season: req.query.season,
+        league: teamStats.league,
       });
     }
 
@@ -65,6 +70,7 @@ export const getTeamOutcomes = async (req, res, next) => {
         team: req.params.teamId,
         losses: teamLosses,
         season: req.query.season,
+        league: teamStats.league,
       });
     }
 
