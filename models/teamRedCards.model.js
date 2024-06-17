@@ -9,6 +9,10 @@ const teamRedCardsSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Season',
   },
+  league: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'League',
+  },
   redCards: {
     type: Number,
     required: true,
