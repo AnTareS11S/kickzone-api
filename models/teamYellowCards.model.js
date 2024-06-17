@@ -9,6 +9,10 @@ const teamYellowCardsSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Season',
   },
+  league: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'League',
+  },
   yellowCards: {
     type: Number,
     required: true,
