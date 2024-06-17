@@ -10,6 +10,10 @@ const teamGoalsSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Season',
     },
+    league: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'League',
+    },
     goals: {
       type: Number,
       required: true,
