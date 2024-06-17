@@ -46,11 +46,13 @@ export const getTeamCards = async (req, res, next) => {
     const existingTeamRedCards = await TeamRedCards.findOne({
       team: req.params.teamId,
       season: req.query.season ? req.query.season : league?.season,
+      league: league?._id,
     });
 
     const existingTeamYellowCards = await TeamYellowCards.findOne({
       team: req.params.teamId,
       season: req.query.season ? req.query.season : league?.season,
+      league: league?._id,
     });
 
     if (existingTeamRedCards) {
@@ -61,6 +63,7 @@ export const getTeamCards = async (req, res, next) => {
         team: req.params.teamId,
         redCards: redCardsCount,
         season: req.query.season ? req.query.season : league?.season,
+        league: league?._id,
       });
     }
 
@@ -72,6 +75,7 @@ export const getTeamCards = async (req, res, next) => {
         team: req.params.teamId,
         yellowCards: yellowCardsCount,
         season: req.query.season ? req.query.season : league?.season,
+        league: league?._id,
       });
     }
 
