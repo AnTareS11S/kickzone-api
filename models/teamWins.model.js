@@ -10,11 +10,13 @@ const teamWindsSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Season',
     },
+    league: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'League',
+    },
     wins: {
       type: Number,
-      trim: true,
-      min: 0,
-      max: 999,
+      required: true,
     },
   },
   { timestamps: true }
