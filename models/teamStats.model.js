@@ -14,6 +14,10 @@ const teamStatsSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Season',
     },
+    league: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'League',
+    },
     gamesPlayed: { type: Number, default: 0 },
     wins: { type: Number, default: 0 },
     draws: { type: Number, default: 0 },
