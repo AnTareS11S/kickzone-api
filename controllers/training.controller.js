@@ -46,6 +46,11 @@ export const editTraining = async (req, res, next) => {
     const training = await Training.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
+
+    if (!training) {
+      return res.status(404).json({ message: 'Training not found' });
+    }
+
     res.status(200).json(training);
   } catch (error) {
     next(error);
