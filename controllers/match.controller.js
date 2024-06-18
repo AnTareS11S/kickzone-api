@@ -46,7 +46,7 @@ export const generateMatchSchedule = async (req, res, next) => {
 
     if (!teams || teams.length < 2) {
       return res
-        .status(404)
+        .status(406)
         .json({ message: 'Not enough teams found to generate schedule' });
     }
 
