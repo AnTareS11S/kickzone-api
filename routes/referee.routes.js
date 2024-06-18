@@ -16,12 +16,10 @@ import {
   getFilledMatchesByLeagueId,
   getMatchById,
   getRefereeMatches,
-  getSchedule,
   getSeasonByMatchId,
 } from '../controllers/match.controller.js';
 import {
   deleteSchedule,
-  getRoundById,
   getRoundByLeagueId,
 } from '../controllers/round.controller.js';
 import {
@@ -44,9 +42,7 @@ router.post('/add', upload.single('photo'), addReferee);
 
 router.get('/:id', getRefereeById);
 router.get('/get/:id', getRefereeByUserId);
-router.get('/get-schedule/:id', getSchedule);
 router.get('/get-rounds/:id', getRoundByLeagueId);
-router.get('/get-round/:id', getRoundById);
 router.get('/get-match/:id', getMatchById);
 router.get('/match-result/:id', getResultByMatchId);
 router.get('/match-stats/:id/:playerId', getMatchStatsByMatchId);
