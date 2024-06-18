@@ -35,10 +35,6 @@ const matchSchema = new mongoose.Schema(
     description: {
       type: String,
     },
-    type: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'MatchType',
-    },
     season: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Season',
