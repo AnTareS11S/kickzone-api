@@ -29,7 +29,7 @@ cron.schedule('0 0 * * *', async () => {
 export const generateMatchSchedule = async (req, res, next) => {
   try {
     const league = await League.find({ _id: req.params.id });
-    const seasonId = league.season;
+    const { seasonId } = req.body;
 
     const match = await Match.find({ league: req.params.id, season: seasonId });
 
@@ -205,24 +205,6 @@ export const saveSchedule = async (req, res, next) => {
   }
 };
 
-export const getSchedule = async (req, res, next) => {
-  try {
-    const league = await League.findById(req.params.id);
-    if (!league) {
-      return res.status(404).json({ message: 'League not found' });
-    }
-
-    const matches = await Match.find({ league: req.params.id })
-      .populate('homeTeam', 'name')
-      .populate('awayTeam', 'name')
-      .populate('league', 'name');
-
-    res.status(200).json(matches);
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const deleteMatchesByLeagueId = async (req, res, next) => {
   try {
     const league = await League.findById(req.params.id);
@@ -282,7 +264,8 @@ export const getMatchById = async (req, res, next) => {
       .populate('homeTeam', '_id, name')
       .populate('awayTeam', '_id, name')
       .populate('league', 'name')
-      .populate('round', 'name');
+      .populate('round', 'name')
+      .populate('season', 'name');
 
     if (!match) {
       return res.status(404).json({ message: 'Match not found' });
