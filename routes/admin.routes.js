@@ -136,16 +136,16 @@ router.get('/training/:id', getAllCoachTrainings);
 router.get('/participants/:id', getParticipants);
 router.get('/training/get/:id', getTrainingById);
 router.post('/participants/:id/add', addPlayerToTraining);
-router.post('/training/:id/add', addTraining);
-router.post('/training/edit/:id', editTraining);
+router.post('/training/:id/add', customUpload, addTraining);
+router.post('/training/edit/:id', customUpload, editTraining);
 router.post('/training/attendace/:id', addOrRemoveAttendace);
 router.delete('/training/delete/:id', deleteTraining);
 router.delete('/participants/delete/:id', removePlayerFromTraining);
 
 router.get('/training-type', getAllCoachTrainingTypes);
 router.get('/training-type/:id', getAllCoachTrainingTypes);
-router.post('/training-type/:id/add', addTrainingType);
-router.post('/training-type/edit/:id', editTrainingType);
+router.post('/training-type/:id/add', customUpload, addTrainingType);
+router.post('/training-type/edit/:id', customUpload, editTrainingType);
 router.delete('/training-type/delete/:id', deleteTrainingType);
 
 router.get('/season', getSeasons);
