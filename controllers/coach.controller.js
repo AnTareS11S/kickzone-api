@@ -15,6 +15,11 @@ export const createCoach = async (req, res, next) => {
           { ...req.body },
           { new: true }
         );
+        await User.findOneAndUpdate(
+          { _id: req.body.user },
+          { isProfileFilled: true },
+          { new: true }
+        );
         return res.status(200).json(updatedCoach);
       }
       const newCoach = new Coach(req.body);
@@ -36,6 +41,11 @@ export const createCoach = async (req, res, next) => {
         { ...req.body, photo: photoName },
         { new: true }
       );
+      await User.findOneAndUpdate(
+        { _id: req.body.user },
+        { isProfileFilled: true },
+        { new: true }
+      );
       return res.status(200).json(updatedCoach);
     }
     const newCoach = new Coach({
@@ -44,11 +54,9 @@ export const createCoach = async (req, res, next) => {
       currentTeam: null,
     });
 
-    await User.findByIdAndUpdate(
-      req.body.user,
-      {
-        isProfileFilled: true,
-      },
+    await User.findOneAndUpdate(
+      { _id: req.body.user },
+      { isProfileFilled: true },
       { new: true }
     );
 
