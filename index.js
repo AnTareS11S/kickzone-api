@@ -14,6 +14,7 @@ import countryRoutes from './routes/country.routes.js';
 import seasonRoutes from './routes/season.routes.js';
 import positionRoutes from './routes/position.routes.js';
 import stadiumRoutes from './routes/stadium.routes.js';
+import formationRoutes from './routes/formation.routes.js';
 import cookieParser from 'cookie-parser';
 import { S3Client } from '@aws-sdk/client-s3';
 
@@ -52,6 +53,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/referee', refereeRoutes);
 app.use('/api/country', countryRoutes);
 app.use('/api/position', positionRoutes);
+app.use('/api/formation', formationRoutes);
 app.use('/api/stadium', stadiumRoutes);
 app.use('/api/season', seasonRoutes);
 app.use('/api/league', leagueRoutes);
