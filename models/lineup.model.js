@@ -2,9 +2,9 @@ import mongoose from 'mongoose';
 
 const lineupSchema = new mongoose.Schema(
   {
-    player: {
+    coach: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Player',
+      ref: 'Coach',
       required: true,
     },
     team: {
@@ -12,15 +12,24 @@ const lineupSchema = new mongoose.Schema(
       ref: 'Team',
       required: true,
     },
-    match: {
+    formation: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Match',
+      ref: 'Formation',
       required: true,
     },
-    position: {
-      type: String,
-      required: true,
-    },
+    players: [
+      {
+        player: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Player',
+          required: true,
+        },
+        position: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
