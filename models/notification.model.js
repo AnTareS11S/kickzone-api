@@ -2,6 +2,10 @@ import mongoose from 'mongoose';
 
 const notificationSchema = new mongoose.Schema(
   {
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
     title: {
       type: String,
     },
@@ -15,7 +19,7 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       default: 'unread',
     },
-    user: {
+    recipient: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
