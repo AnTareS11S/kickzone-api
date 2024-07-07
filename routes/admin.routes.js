@@ -83,6 +83,7 @@ import {
   editFormation,
   getFormations,
 } from '../controllers/formation.controller.js';
+import { sendNotification } from '../controllers/notification.controller.js';
 
 const customUpload = (req, res, next) => {
   if (
@@ -171,5 +172,8 @@ router.get('/sponsor', getAllSponsors);
 router.post('/sponsor/add', customUpload, addSponsor);
 router.post('/sponsor/edit/:id', customUpload, editSponsor);
 router.delete('/sponsor/delete/:id', deleteSponsor);
+
+router.post('/notification/:recipientId', sendNotification);
+router.get('/get-notification/:recipientId', sendNotification);
 
 export default router;
