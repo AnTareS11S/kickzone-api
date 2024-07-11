@@ -147,7 +147,7 @@ router.get('/training', getAllCoachTrainings);
 router.get('/training/:id', getAllCoachTrainings);
 router.get('/participants/:id', getParticipants);
 router.get('/training/get/:id', getTrainingById);
-router.post('/participants/:id/add', addPlayerToTraining);
+router.post('/participants/:id/add', customUpload, addPlayerToTraining);
 router.post('/training/:id/add', customUpload, addTraining);
 router.post('/training/edit/:id', customUpload, editTraining);
 router.post('/training/attendace/:id', addOrRemoveAttendace);
