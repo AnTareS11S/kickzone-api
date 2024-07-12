@@ -4,8 +4,22 @@ const conversationSchema = new mongoose.Schema(
   {
     participants: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          refPath: 'participants.role',
+        },
+        role: {
+          type: String,
+          required: true,
+        },
+        name: {
+          type: String,
+          required: true,
+        },
+        photo: {
+          type: String,
+          required: true,
+        },
       },
     ],
     messages: [
@@ -14,6 +28,12 @@ const conversationSchema = new mongoose.Schema(
         ref: 'Message',
       },
     ],
+    lastMessage: {
+      type: String,
+    },
+    lastMessageTime: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
