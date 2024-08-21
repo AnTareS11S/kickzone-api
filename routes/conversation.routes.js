@@ -1,5 +1,6 @@
 import express from 'express';
 import {
+  createConversation,
   getAllPeople,
   getConversations,
   getMessages,
@@ -8,7 +9,7 @@ import {
 
 const router = express.Router();
 
-router.get('/', getConversations);
+router.get('/', createConversation);
 router.get('/get-people', getAllPeople);
 router.get('/messages', getMessages);
 router.post('/send-message', sendMessage);
