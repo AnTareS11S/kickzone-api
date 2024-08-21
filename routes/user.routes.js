@@ -6,6 +6,7 @@ import {
   getUserById,
   addUser,
   getUserComments,
+  getUserAccountByUserId,
 } from '../controllers/user.controller.js';
 import { verifyToken } from '../utils/verifyUser.js';
 import upload from '../utils/upload.js';
@@ -17,6 +18,7 @@ router.delete('/delete/:id', verifyToken, deleteUser);
 router.post('/change-password/:id', verifyToken, changePassword);
 router.get('/activity/:id', verifyToken, getActivity);
 router.get('/get/:id', getUserById);
+router.get('/get-user-info/:userId', getUserAccountByUserId);
 router.get('/get-comments/:id', getUserComments);
 
 export default router;
