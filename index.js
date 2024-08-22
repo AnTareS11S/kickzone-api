@@ -61,7 +61,7 @@ app.use('/api/season', seasonRoutes);
 app.use('/api/league', leagueRoutes);
 app.use('/api/coach', coachRoutes);
 app.use('/api/player', playerRoutes);
-app.use('/api/conversation', conversationRoutes);
+app.use('/api/conversations', conversationRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/post', postRoutes);
 app.use('/api/team', teamRoutes);
