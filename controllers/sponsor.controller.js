@@ -4,8 +4,6 @@ import sharp from 'sharp';
 
 export const addSponsor = async (req, res, next) => {
   try {
-    console.log(req.file);
-    console.log(req.body);
     const buffer = await sharp(req.file.buffer)
       .resize({ width: 100, height: 100, fit: 'contain' })
       .toBuffer();
