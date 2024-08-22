@@ -1,9 +1,13 @@
 import bcrypt from 'bcryptjs';
 import User from '../models/user.model.js';
 import Post from '../models/post.model.js';
+import Player from '../models/player.model.js';
 import { errorHandler } from '../utils/error.js';
 import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
 import sharp from 'sharp';
+import Referee from '../models/referee.model.js';
+import Coach from '../models/coach.model.js';
+import Conversation from '../models/conversation.model.js';
 
 export const addUser = async (req, res, next) => {
   if (req.user.id !== req.params.id) {
@@ -190,6 +194,44 @@ export const getUserComments = async (req, res, next) => {
       .populate({ path: 'author', model: User });
 
     res.status(200).json(userComments);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUserAccountByUserId = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    const conversations = await Conversation.find({
+      members: { $in: [userId] },
+    });
+
+    const participantIds = conversations.reduce((ids, conversation) => {
+      const otherMember = conversation.members.find(
+        (member) => member.toString() !== userId
+      );
+      if (otherMember) {
+        ids.push(otherMember);
+      }
+      return ids;
+    }, []);
+
+    console.log(participantIds);
+
+    const [player, referee, coach] = await Promise.all([
+      Player.findOne({ _id: { $in: participantIds } }),
+      Referee.findOne({ _id: { $in: participantIds } }),
+      Coach.findOne({ _id: { $in: participantIds } }),
+    ]);
+
+    if (!player && !referee && !coach) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const userAccount = player || referee || coach;
+
+    res.status(200).json(userAccount);
   } catch (error) {
     next(error);
   }
