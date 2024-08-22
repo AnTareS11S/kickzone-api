@@ -217,8 +217,6 @@ export const getUserAccountByUserId = async (req, res, next) => {
       return ids;
     }, []);
 
-    console.log(participantIds);
-
     const [player, referee, coach] = await Promise.all([
       Player.findOne({ _id: { $in: participantIds } }),
       Referee.findOne({ _id: { $in: participantIds } }),
