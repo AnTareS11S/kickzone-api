@@ -7,6 +7,20 @@ import Message from '../models/message.model.js';
 import mongoose from 'mongoose';
 const { ObjectId } = mongoose.Types;
 
+export const createConversation = async (req, res, next) => {
+  try {
+    const conversation = new Conversation({
+      members: [req.body.senderId, req.body.receiverId],
+    });
+
+    await conversation.save();
+
+    res.status(201).json(conversation);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getAllPeople = async (req, res, next) => {
   try {
     const search = req.query.term || '';
@@ -116,6 +130,9 @@ export const sendMessage = async (req, res, next) => {
     const sender = await findUserAndRole(senderObjectId);
     const receiver = await findUserAndRole(receiverObjectId);
 
+    console.log(sender);
+    console.log(receiver);
+
     if (!sender || !receiver) {
       const error = new Error('Invalid sender or receiver');
       error.statusCode = 400;
@@ -182,10 +199,14 @@ export const getMessages = async (req, res, next) => {
   try {
     const { userId, currentUserId } = req.query;
 
-    const receiverObjectId = new ObjectId(currentUserId);
-    const userIdObjectId = new ObjectId(userId);
+    const senderObjectId = new ObjectId(currentUserId);
+    const receiverObjectId = new ObjectId(userId);
 
+    const sender = await findUserAndRole(senderObjectId);
     const receiver = await findUserAndRole(receiverObjectId);
+
+    console.log('ss', sender);
+    console.log('rr', receiver);
 
     if (!userId) {
       const error = new Error('Missing required fields');
@@ -194,8 +215,10 @@ export const getMessages = async (req, res, next) => {
     }
 
     const conversation = await Conversation.findOne({
-      participants: { $all: [userIdObjectId, receiver.user._id] },
+      participants: { $all: [senderObjectId, receiverObjectId] },
     });
+
+    console.log(conversation);
 
     if (!conversation) {
       res.status(200).json({ messages: [] });
@@ -204,7 +227,7 @@ export const getMessages = async (req, res, next) => {
 
     const messages = await Message.find({
       conversation: conversation._id,
-    }).populate('sender', 'name surname photo');
+    }).populate('sender', 'name surname imageUrl');
 
     res.status(200).json({ messages });
   } catch (error) {
@@ -214,29 +237,43 @@ export const getMessages = async (req, res, next) => {
 
 export const getConversations = async (req, res, next) => {
   try {
-    const { currentUserId } = req.query;
+    const { userId } = req.params;
 
-    if (!currentUserId) {
-      const error = new Error('Missing required fields');
-      error.statusCode = 400;
-      throw error;
-    }
+    const [player, referee, coach] = await Promise.all([
+      Player.findOne({ user: userId }),
+      Referee.findOne({ user: userId }),
+      Coach.findOne({ user: userId }),
+    ]);
 
-    const userObjectId = new ObjectId(currentUserId);
+    const participantIds = [player?._id, referee?._id, coach?._id].filter(
+      Boolean
+    );
 
-    const user = await findUserAndRole(userObjectId);
-
-    const conversations = await Conversation.find({
-      participants: {
-        $elemMatch: {
-          user: user.user._id,
-        },
+    const conversation = await Conversation.find({
+      members: {
+        $in: [participantIds.toString()],
       },
-    }).populate('participants', 'name surname imageUrl _id');
+    });
 
-    console.log(conversations);
+    //.populate({
+    //   path: 'participants.role',
+    //   select: 'name surname photo _id',
+    //   transform: (doc) => {
+    //     if (doc.photo) {
+    //       doc.imageUrl = 'https://d3awt09vrts30h.cloudfront.net/' + doc.photo;
+    //     } else {
+    //       doc.imageUrl = null;
+    //     }
+    //     return {
+    //       _id: doc._id,
+    //       name: doc.name,
+    //       surname: doc.surname,
+    //       imageUrl: doc.imageUrl,
+    //     };
+    //   },
+    // });
 
-    res.status(200).json(conversations);
+    res.status(200).json(conversation);
   } catch (error) {
     next(error);
   }
