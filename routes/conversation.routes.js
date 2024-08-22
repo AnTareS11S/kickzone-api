@@ -3,15 +3,12 @@ import {
   createConversation,
   getAllPeople,
   getConversations,
-  getMessages,
-  sendMessage,
 } from '../controllers/conversation.controller.js';
 
 const router = express.Router();
 
-router.get('/', createConversation);
+router.post('/', createConversation);
+router.get('/:userId', getConversations);
 router.get('/get-people', getAllPeople);
-router.get('/messages', getMessages);
-router.post('/send-message', sendMessage);
 
 export default router;
