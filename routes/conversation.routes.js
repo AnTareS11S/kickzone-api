@@ -1,7 +1,7 @@
 import express from 'express';
 import {
   createConversation,
-  getAllPeople,
+  getConversationIncludesTwoUsers,
   getConversations,
 } from '../controllers/conversation.controller.js';
 
@@ -9,6 +9,6 @@ const router = express.Router();
 
 router.post('/', createConversation);
 router.get('/:userId', getConversations);
-router.get('/get-people', getAllPeople);
+router.get('/find/:firstUserId/:secondUserId', getConversationIncludesTwoUsers);
 
 export default router;
