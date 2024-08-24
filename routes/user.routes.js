@@ -8,6 +8,7 @@ import {
   getUserComments,
   getUserAccountByUserId,
   getAccountByUserId,
+  getAllAccounts,
 } from '../controllers/user.controller.js';
 import { verifyToken } from '../utils/verifyUser.js';
 import upload from '../utils/upload.js';
@@ -22,5 +23,6 @@ router.get('/get/:id', getUserById);
 router.get('/get-user-info/:userId', getUserAccountByUserId);
 router.get('/get-account-id/:userId', getAccountByUserId);
 router.get('/get-comments/:id', getUserComments);
+router.get('/get-accounts', getAllAccounts);
 
 export default router;
