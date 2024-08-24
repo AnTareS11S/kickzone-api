@@ -202,34 +202,71 @@ export const getUserComments = async (req, res, next) => {
 export const getUserAccountByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
+    const { conversationId } = req.query;
 
-    const conversations = await Conversation.find({
-      members: { $in: [userId] },
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
     });
 
-    const participantIds = conversations.reduce((ids, conversation) => {
-      const otherMember = conversation.members.find(
-        (member) => member.toString() !== userId
-      );
-      if (otherMember) {
-        ids.push(otherMember);
-      }
-      return ids;
-    }, []);
+    if (!conversation) {
+      return res.status(404).json({ message: 'Conversation not found' });
+    }
 
     const [player, referee, coach] = await Promise.all([
-      Player.findOne({ _id: { $in: participantIds } }),
-      Referee.findOne({ _id: { $in: participantIds } }),
-      Coach.findOne({ _id: { $in: participantIds } }),
+      Player.findOne({ user: userId }),
+      Referee.findOne({ user: userId }),
+      Coach.findOne({ user: userId }),
     ]);
 
     if (!player && !referee && !coach) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const userAccount = player || referee || coach;
+    const userAccountId = player?._id || referee?._id || coach?._id;
 
-    res.status(200).json(userAccount);
+    const otherMemberId = conversation.members.find(
+      (member) => member.toString() !== userAccountId.toString()
+    );
+
+    if (!otherMemberId) {
+      return res.status(404).json({ message: 'No other participant found' });
+    }
+
+    const [otherPlayer, otherReferee, otherCoach] = await Promise.all([
+      Player.findOne({ _id: otherMemberId }),
+      Referee.findOne({ _id: otherMemberId }),
+      Coach.findOne({ _id: otherMemberId }),
+    ]);
+
+    if (!otherPlayer && !otherReferee && !otherCoach) {
+      return res.status(404).json({ message: 'Other user not found' });
+    }
+
+    const otherUserAccount = otherPlayer || otherReferee || otherCoach;
+
+    res.status(200).json(otherUserAccount);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAccountByUserId = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    const [player, referee, coach] = await Promise.all([
+      Player.findOne({ user: userId }),
+      Referee.findOne({ user: userId }),
+      Coach.findOne({ user: userId }),
+    ]);
+
+    if (!player && !referee && !coach) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const userAccountId = player?._id || referee?._id || coach?._id;
+
+    res.status(200).json(userAccountId);
   } catch (error) {
     next(error);
   }
