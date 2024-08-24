@@ -271,3 +271,54 @@ export const getAccountByUserId = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getAllAccounts = async (req, res, next) => {
+  try {
+    const search = req.query.term || '';
+    const searchTerms = search.split(' ').filter((term) => term.length > 0);
+
+    let searchQuery;
+    if (searchTerms.length > 1) {
+      searchQuery = {
+        $and: [
+          { name: { $regex: searchTerms[0], $options: 'i' } },
+          {
+            surname: { $regex: searchTerms.slice(1).join(' '), $options: 'i' },
+          },
+        ],
+      };
+    } else {
+      searchQuery = {
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { surname: { $regex: search, $options: 'i' } },
+        ],
+      };
+    }
+
+    const [players, coaches, referees] = await Promise.all([
+      Player.find(searchQuery),
+      Coach.find(searchQuery),
+      Referee.find(searchQuery),
+    ]);
+
+    const setImageUrl = (item) => {
+      if (item.photo) {
+        item.imageUrl = 'https://d3awt09vrts30h.cloudfront.net/' + item.photo;
+      } else {
+        item.imageUrl = null;
+      }
+      return item;
+    };
+
+    const modifyPlayers = players?.map((player) => setImageUrl(player));
+    const modifyCoaches = coaches?.map((coach) => setImageUrl(coach));
+    const modifyReferees = referees?.map((referee) => setImageUrl(referee));
+
+    const people = [...modifyPlayers, ...modifyCoaches, ...modifyReferees];
+
+    res.status(200).json(people);
+  } catch (error) {
+    next(error);
+  }
+};
