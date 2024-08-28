@@ -6,7 +6,7 @@ import {
   getUserById,
   addUser,
   getUserComments,
-  getUserAccountByUserId,
+  getUserInfoByUserId,
   getAccountByUserId,
   getAllAccounts,
 } from '../controllers/user.controller.js';
@@ -20,7 +20,7 @@ router.delete('/delete/:id', verifyToken, deleteUser);
 router.post('/change-password/:id', verifyToken, changePassword);
 router.get('/activity/:id', verifyToken, getActivity);
 router.get('/get/:id', getUserById);
-router.get('/get-user-info/:userId', getUserAccountByUserId);
+router.get('/get-user-info/:userId', getUserInfoByUserId);
 router.get('/get-account-id/:userId', getAccountByUserId);
 router.get('/get-comments/:id', getUserComments);
 router.get('/get-accounts', getAllAccounts);
