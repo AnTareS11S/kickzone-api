@@ -199,7 +199,7 @@ export const getUserComments = async (req, res, next) => {
   }
 };
 
-export const getUserAccountByUserId = async (req, res, next) => {
+export const getUserInfoByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const { conversationId } = req.query;
@@ -243,6 +243,17 @@ export const getUserAccountByUserId = async (req, res, next) => {
     }
 
     const otherUserAccount = otherPlayer || otherReferee || otherCoach;
+
+    const setImageUrl = (item) => {
+      if (item.photo) {
+        item.imageUrl = 'https://d3awt09vrts30h.cloudfront.net/' + item.photo;
+      } else {
+        item.imageUrl = null;
+      }
+      return item;
+    };
+
+    setImageUrl(otherUserAccount);
 
     res.status(200).json(otherUserAccount);
   } catch (error) {
