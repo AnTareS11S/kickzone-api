@@ -213,9 +213,9 @@ export const getUserInfoByUserId = async (req, res, next) => {
     }
 
     const [player, referee, coach] = await Promise.all([
-      Player.findOne({ user: userId }),
-      Referee.findOne({ user: userId }),
-      Coach.findOne({ user: userId }),
+      Player.findOne({ $or: [{ user: userId }, { _id: userId }] }),
+      Referee.findOne({ $or: [{ user: userId }, { _id: userId }] }),
+      Coach.findOne({ $or: [{ user: userId }, { _id: userId }] }),
     ]);
 
     if (!player && !referee && !coach) {
