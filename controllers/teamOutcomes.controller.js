@@ -11,7 +11,11 @@ export const getTeamOutcomes = async (req, res, next) => {
     });
 
     if (!teamStats) {
-      return res.status(404).json({ message: 'Team Stats not found' });
+      return res.status(200).json({
+        wins: 0,
+        draws: 0,
+        losses: 0,
+      });
     }
 
     const teamWins = teamStats.wins;
