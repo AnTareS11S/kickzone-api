@@ -31,3 +31,7 @@ const coachStatsSchema = new monogoose.Schema(
   },
   { timestamps: true }
 );
+
+const CoachStats = monogoose.model('CoachStats', coachStatsSchema);
+
+export default CoachStats;
