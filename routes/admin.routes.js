@@ -84,6 +84,12 @@ import {
   getFormations,
 } from '../controllers/formation.controller.js';
 import { sendNotification } from '../controllers/notification.controller.js';
+import {
+  createTerm,
+  deleteTerm,
+  editTerm,
+  getTerms,
+} from '../controllers/terms.controller.js';
 
 const customUpload = (req, res, next) => {
   if (
@@ -175,5 +181,10 @@ router.delete('/sponsor/delete/:id', deleteSponsor);
 
 router.post('/notification/:recipientId', sendNotification);
 router.get('/get-notification/:recipientId', sendNotification);
+
+router.get('/terms', getTerms);
+router.post('/terms/add', customUpload, createTerm);
+router.post('/terms/edit/:id', customUpload, editTerm);
+router.delete('/terms/delete/:id', deleteTerm);
 
 export default router;
