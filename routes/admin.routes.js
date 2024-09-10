@@ -90,6 +90,12 @@ import {
   editTerm,
   getTerms,
 } from '../controllers/terms.controller.js';
+import {
+  createPrivacy,
+  deletePrivacy,
+  editPrivacy,
+  getPrivacies,
+} from '../controllers/privacy.controller.js';
 
 const customUpload = (req, res, next) => {
   if (
@@ -186,5 +192,10 @@ router.get('/terms', getTerms);
 router.post('/terms/add', customUpload, createTerm);
 router.post('/terms/edit/:id', customUpload, editTerm);
 router.delete('/terms/delete/:id', deleteTerm);
+
+router.get('/privacy', getPrivacies);
+router.post('/privacy/add', customUpload, createPrivacy);
+router.post('/privacy/edit/:id', customUpload, editPrivacy);
+router.delete('/privacy/delete/:id', deletePrivacy);
 
 export default router;
