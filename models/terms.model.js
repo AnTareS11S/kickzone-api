@@ -3,7 +3,8 @@ import mongoose from 'mongoose';
 const termSchema = new mongoose.Schema(
   {
     term: { type: String, required: true },
-    definition: { type: String, required: true },
+    content: { type: String, required: true },
+    active: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
