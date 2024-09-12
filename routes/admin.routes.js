@@ -96,6 +96,13 @@ import {
   editPrivacy,
   getPrivacies,
 } from '../controllers/privacy.controller.js';
+import {
+  createAboutUs,
+  deleteAboutUs,
+  editAboutUs,
+  getAboutUs,
+  getOneAboutUs,
+} from '../controllers/aboutUs.controller.js';
 
 const customUpload = (req, res, next) => {
   if (
@@ -197,5 +204,11 @@ router.get('/privacy', getPrivacies);
 router.post('/privacy/add', customUpload, createPrivacy);
 router.post('/privacy/edit/:id', customUpload, editPrivacy);
 router.delete('/privacy/delete/:id', deletePrivacy);
+
+router.get('/about', getAboutUs);
+router.get('/aboutOne', getOneAboutUs);
+router.post('/about/add', upload.single('logo'), createAboutUs);
+router.post('/about/edit/:id', upload.single('logo'), editAboutUs);
+router.delete('/about/delete/:id', deleteAboutUs);
 
 export default router;
