@@ -28,6 +28,13 @@ export const addReferee = async (req, res, next) => {
           { ...req.body },
           { new: true }
         );
+
+        await User.findOneAndUpdate(
+          { _id: req.body.user },
+          { isProfileFilled: true },
+          { new: true }
+        );
+
         return res.status(200).json(updatedReferee);
       }
       const newReferee = new Referee({

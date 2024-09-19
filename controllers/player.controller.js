@@ -59,7 +59,7 @@ export const addPlayer = async (req, res, next) => {
 
     await User.findOneAndUpdate(
       { _id: req.body.user },
-      { isProfileFilled: false },
+      { isProfileFilled: true },
       { new: true }
     );
 
