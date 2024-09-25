@@ -1,6 +1,7 @@
 import League from '../models/league.model.js';
 import Match from '../models/match.model.js';
 import Referee from '../models/referee.model.js';
+import Result from '../models/result.model.js';
 import Round from '../models/round.model.js';
 import Team from '../models/team.model.js';
 import moment from 'moment';
@@ -399,6 +400,75 @@ export const getRefereeMatches = async (req, res, next) => {
       .populate('round', 'name');
 
     res.status(200).json(refereeMatches);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getTodayMatches = async (req, res, next) => {
+  try {
+    const currentDate = new Date();
+    const matches = await Match.find({
+      startDate: {
+        $gte: moment(currentDate).startOf('day').toDate(),
+        $lte: moment(currentDate).endOf('day').toDate(),
+      },
+    })
+      .populate('homeTeam', 'name')
+      .populate('awayTeam', 'name')
+      .populate('league', 'name');
+
+    const todayMatches = matches.map((match) => {
+      return {
+        matchId: match._id,
+        league: match.league.name,
+        homeTeam: match.homeTeam.name,
+        awayTeam: match.awayTeam.name,
+        startDate: match.startDate,
+      };
+    });
+
+    res.status(200).json(todayMatches);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getRecentMatchResults = async (req, res, next) => {
+  try {
+    const currentDate = new Date();
+
+    const matches = await Match.find({
+      isCompleted: true,
+      endDate: { $lt: currentDate },
+    })
+      .sort({ endDate: -1 })
+      .limit(5)
+      .populate('homeTeam', 'name')
+      .populate('awayTeam', 'name')
+      .populate('league', 'name');
+
+    const results = await Result.find({
+      match: { $in: matches.map((match) => match._id) },
+    });
+
+    const matchResults = matches.map((match) => {
+      const matchResult = results.find((result) =>
+        result.match.equals(match._id)
+      );
+
+      return {
+        resultId: matchResult._id,
+        league: match.league.name,
+        homeTeam: match.homeTeam.name,
+        awayTeam: match.awayTeam.name,
+        homeScore: matchResult ? matchResult.homeTeamScore : null,
+        awayScore: matchResult ? matchResult.awayTeamScore : null,
+        startDate: match.startDate,
+      };
+    });
+
+    res.status(200).json(matchResults);
   } catch (error) {
     next(error);
   }
