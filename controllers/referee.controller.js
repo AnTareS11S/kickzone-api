@@ -260,9 +260,13 @@ export const getMatchDetailsPDF = async (req, res, next) => {
       match?.homeTeam?.name + ' vs ' + match?.awayTeam?.name
     );
 
+    const safeFileName = encodeURIComponent(
+      sanitizedMatchName.replace(/\s+/g, '_')
+    );
+
     const stream = res.writeHead(200, {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename=${sanitizedMatchName}.pdf`,
+      'Content-Disposition': `attachment; filename=${safeFileName}.pdf`,
     });
 
     match.homeTeam.name = sanitizeFileName(match?.homeTeam?.name);
@@ -291,10 +295,10 @@ const polishToEnglish = {
 };
 
 const sanitizeFileName = (fileName) => {
-  return fileName.replace(
-    /[ąćęłńóśżź]/g,
-    (match) => polishToEnglish[match] || match
-  );
+  return fileName
+    .replace(/[ąćęłńóśżź]/g, (match) => polishToEnglish[match] || match)
+    .replace(/[^\w\s-]/g, '')
+    .trim();
 };
 
 export const getMatchDetailsXlsx = async (req, res, next) => {
