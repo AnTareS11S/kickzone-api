@@ -252,7 +252,6 @@ const buildMatchDetailsPDF = async (dataCallback, endCallback, match) => {
       47.64,
       170
     );
-    console.log(match);
 
     doc.text(
       'Second Assistant: ' +
