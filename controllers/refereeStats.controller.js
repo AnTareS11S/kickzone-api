@@ -6,9 +6,20 @@ import Result from '../models/result.model.js';
 export const getRefereeStats = async (req, res) => {
   try {
     const refereeId = req.params.id;
-    const refereeStats = await RefereeStats.findOne({
+    let refereeStats = await RefereeStats.findOne({
       referee: refereeId,
     });
+
+    if (!refereeStats) {
+      refereeStats = new RefereeStats({
+        referee: refereeId,
+        matches: 0,
+        yellowCards: 0,
+        redCards: 0,
+        lastMatchId: null,
+        lastMatchName: '',
+      });
+    }
 
     const matchesAsAssistant = await Match.find({
       $or: [
