@@ -473,3 +473,43 @@ export const getRecentMatchResults = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getMatchOverview = async (req, res, next) => {
+  try {
+    const match = await Match.findById(req.params.matchId)
+      .populate({
+        path: 'homeTeam',
+        select: 'name logoUrl',
+        populate: {
+          path: 'stadium',
+          select: 'name -_id',
+        },
+      })
+      .populate('awayTeam', 'name logoUrl')
+      .populate('league', 'name -_id')
+      .populate('round', 'name -_id')
+      .populate('season', 'name -_id')
+      .populate('mainReferee', 'name');
+
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
+    }
+
+    const matchOverview = {
+      matchId: match._id,
+      league: match.league.name,
+      homeTeam: match.homeTeam,
+      stadium: match.stadium,
+      awayTeam: match.awayTeam,
+      startDate: match.startDate,
+      endDate: match.endDate,
+      round: match.round.name,
+      season: match.season.name,
+      mainReferee: match.mainReferee,
+    };
+
+    res.status(200).json(matchOverview);
+  } catch (error) {
+    next(error);
+  }
+};
