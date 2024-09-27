@@ -17,6 +17,7 @@ import stadiumRoutes from './routes/stadium.routes.js';
 import formationRoutes from './routes/formation.routes.js';
 import conversationRoutes from './routes/conversation.routes.js';
 import messagesRoutes from './routes/messages.routes.js';
+import matchRoutes from './routes/match.routes.js';
 import cookieParser from 'cookie-parser';
 import { S3Client } from '@aws-sdk/client-s3';
 
@@ -61,6 +62,7 @@ app.use('/api/season', seasonRoutes);
 app.use('/api/league', leagueRoutes);
 app.use('/api/coach', coachRoutes);
 app.use('/api/player', playerRoutes);
+app.use('/api/match', matchRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/post', postRoutes);
