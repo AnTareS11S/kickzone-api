@@ -225,7 +225,7 @@ router.get('/recent-results', getRecentMatchResults);
 // FAQ
 router.get('/faq', getFaqs);
 router.post('/faq/add', customUpload, createFaq);
-router.post('/faq/edit/:id', editFaq);
+router.post('/faq/edit/:id', customUpload, editFaq);
 router.delete('/faq/delete/:id', deleteFaq);
 
 export default router;
