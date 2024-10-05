@@ -106,6 +106,12 @@ import {
   getRecentMatchResults,
   getTodayMatches,
 } from '../controllers/match.controller.js';
+import {
+  createFaq,
+  deleteFaq,
+  editFaq,
+  getFaqs,
+} from '../controllers/faq.controller.js';
 
 const customUpload = (req, res, next) => {
   if (
@@ -216,5 +222,10 @@ router.delete('/about/delete/:id', deleteAboutUs);
 // Explore
 router.get('/today-matches', getTodayMatches);
 router.get('/recent-results', getRecentMatchResults);
+// FAQ
+router.get('/faq', getFaqs);
+router.post('/faq/add', customUpload, createFaq);
+router.post('/faq/edit/:id', editFaq);
+router.delete('/faq/delete/:id', deleteFaq);
 
 export default router;
