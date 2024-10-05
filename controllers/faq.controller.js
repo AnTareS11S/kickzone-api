@@ -50,17 +50,8 @@ export const editFaq = async (req, res, next) => {
 
 export const deleteFaq = async (req, res, next) => {
   try {
-    const faq = await Faq.findById(req.params.id);
-
-    if (!faq) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Faq not found!' });
-    }
-
-    await faq.remove();
-
-    res.status(200).json({ success: true, message: 'Faq deleted!' });
+    await Faq.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true });
   } catch (error) {
     next(error);
   }
