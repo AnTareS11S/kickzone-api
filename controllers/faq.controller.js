@@ -28,21 +28,11 @@ export const getFaqs = async (req, res, next) => {
 
 export const editFaq = async (req, res, next) => {
   try {
-    const faq = await Faq.findById(req.params.id);
+    const faq = await Faq.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
-    if (!faq) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Faq not found!' });
-    }
-
-    const updatedFaq = await Faq.findByIdAndUpdate(
-      { _id: req.params.id },
-      { question: req.body.question, answer: req.body.answer },
-      { new: true }
-    );
-
-    res.status(200).json(updatedFaq);
+    res.status(200).json(faq);
   } catch (error) {
     next(error);
   }
