@@ -440,6 +440,7 @@ export const getRecentMatchResults = async (req, res, next) => {
 
     const matches = await Match.find({
       isCompleted: true,
+      isResultApproved: true,
       endDate: { $lt: currentDate },
     })
       .sort({ endDate: -1 })
@@ -449,16 +450,16 @@ export const getRecentMatchResults = async (req, res, next) => {
       .populate('league', 'name');
 
     const results = await Result.find({
-      match: { $in: matches.map((match) => match._id) },
+      match: { $in: matches.map((match) => match?._id) },
     });
 
     const matchResults = matches.map((match) => {
       const matchResult = results.find((result) =>
-        result.match.equals(match._id)
+        result.match.equals(match?._id)
       );
 
       return {
-        resultId: matchResult._id,
+        resultId: matchResult?._id,
         league: match.league.name,
         homeTeam: match.homeTeam.name,
         awayTeam: match.awayTeam.name,
