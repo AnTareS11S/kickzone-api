@@ -112,6 +112,13 @@ import {
   editFaq,
   getFaqs,
 } from '../controllers/faq.controller.js';
+import {
+  createContact,
+  deleteContact,
+  editContact,
+  getContact,
+  getOneContact,
+} from '../controllers/contact.controller.js';
 
 const customUpload = (req, res, next) => {
   if (
@@ -227,5 +234,11 @@ router.get('/faq', getFaqs);
 router.post('/faq/add', customUpload, createFaq);
 router.post('/faq/edit/:id', customUpload, editFaq);
 router.delete('/faq/delete/:id', deleteFaq);
+// Contact
+router.get('/contact', getContact);
+router.get('/contactOne', getOneContact);
+router.post('/contact/add', customUpload, createContact);
+router.post('/contact/edit/:id', customUpload, editContact);
+router.delete('/contact/delete/:id', deleteContact);
 
 export default router;
