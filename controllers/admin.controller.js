@@ -3,6 +3,8 @@ import Team from '../models/team.model.js';
 import League from '../models/league.model.js';
 import Season from '../models/season.model.js';
 import Admin from '../models/admin.model.js';
+import sharp from 'sharp';
+import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
 
 export const createAdmin = async (req, res, next) => {
   try {
