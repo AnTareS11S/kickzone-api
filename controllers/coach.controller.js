@@ -69,7 +69,7 @@ export const createCoach = async (req, res, next) => {
 
 export const getCoachByUserId = async (req, res, next) => {
   try {
-    const coach = await Coach.findOne({ user: req?.params?.id });
+    const coach = await Coach.findOne({ user: req.params.id });
     if (coach) {
       coach.imageUrl = `https://d3awt09vrts30h.cloudfront.net/${coach?.photo}`;
     }
