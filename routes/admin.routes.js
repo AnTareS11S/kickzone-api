@@ -136,7 +136,7 @@ const router = express.Router();
 
 // Admin
 router.get('/get/:adminId', getAdminByUserId);
-router.post('/create', customUpload, createAdmin);
+router.post('/create', upload.single('photo'), createAdmin);
 
 // User
 router.get('/user', getAllUsers);
