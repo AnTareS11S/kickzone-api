@@ -4,6 +4,68 @@ import League from '../models/league.model.js';
 import Season from '../models/season.model.js';
 import Admin from '../models/admin.model.js';
 
+export const createAdmin = async (req, res, next) => {
+  try {
+    if (!req.file || !req.file.buffer) {
+      const existedAdmin = await Admin.findOne({ user: req.body.user });
+      if (existedAdmin) {
+        const updatedAdmin = await Admin.findOneAndUpdate(
+          { user: req.body.user },
+          { ...req.body },
+          { new: true }
+        );
+        await User.findOneAndUpdate(
+          { _id: req.body.user },
+          { isProfileFilled: true },
+          { new: true }
+        );
+        return res.status(200).json(updatedAdmin);
+      }
+      const newAdmin = new Admin(req.body);
+      await newAdmin.save();
+      res.status(201).json(newAdmin);
+    }
+
+    const buffer = await sharp(req.file.buffer)
+      .resize({ width: 200, height: 200, fit: 'cover' })
+      .toBuffer();
+
+    const photoName = await uploadImageToS3(buffer, req.file.mimetype);
+    const existedAdmin = await Admin.findOne({ user: req.body.user });
+    if (existedAdmin) {
+      existedAdmin.photo ? await deleteImageFromS3(existedAdmin.photo) : null;
+
+      const updatedAdmin = await Admin.findOneAndUpdate(
+        { user: req.body.user },
+        { ...req.body, photo: photoName },
+        { new: true }
+      );
+      await User.findOneAndUpdate(
+        { _id: req.body.user },
+        { isProfileFilled: true },
+        { new: true }
+      );
+      return res.status(200).json(updatedAdmin);
+    }
+    const newAdmin = new Admin({
+      ...req.body,
+      photo: photoName,
+      currentTeam: null,
+    });
+
+    await User.findOneAndUpdate(
+      { _id: req.body.user },
+      { isProfileFilled: true },
+      { new: true }
+    );
+
+    await newAdmin.save();
+    res.status(201).json(newAdmin);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getAdminByUserId = async (req, res, next) => {
   try {
     const admin = await Admin.findOne({ user: req.params.adminId });
