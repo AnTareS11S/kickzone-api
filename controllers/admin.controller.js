@@ -2,6 +2,19 @@ import User from '../models/user.model.js';
 import Team from '../models/team.model.js';
 import League from '../models/league.model.js';
 import Season from '../models/season.model.js';
+import Admin from '../models/admin.model.js';
+
+export const getAdminByUserId = async (req, res, next) => {
+  try {
+    const admin = await Admin.findOne({ user: req.params.adminId });
+    if (admin) {
+      admin.imageUrl = `https://d3awt09vrts30h.cloudfront.net/${admin?.photo}`;
+    }
+    res.status(200).json(admin);
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const getAllUsers = async (req, res, next) => {
   try {
