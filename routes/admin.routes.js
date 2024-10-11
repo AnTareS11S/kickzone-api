@@ -1,5 +1,6 @@
 import express from 'express';
 import {
+  createAdmin,
   deleteLeague,
   deleteTeam,
   deleteUser,
@@ -134,7 +135,8 @@ const customUpload = (req, res, next) => {
 const router = express.Router();
 
 // Admin
-router.get('/:adminId', getAdminByUserId);
+router.get('/get/:adminId', getAdminByUserId);
+router.post('/create', customUpload, createAdmin);
 
 // User
 router.get('/user', getAllUsers);
