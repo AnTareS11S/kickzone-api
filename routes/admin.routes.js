@@ -3,6 +3,7 @@ import {
   deleteLeague,
   deleteTeam,
   deleteUser,
+  getAdminByUserId,
   getAllLeagues,
   getAllUsers,
   getTeamsByIds,
@@ -131,6 +132,10 @@ const customUpload = (req, res, next) => {
 };
 
 const router = express.Router();
+
+// Admin
+router.get('/:adminId', getAdminByUserId);
+
 // User
 router.get('/user', getAllUsers);
 router.post('/users/:id/role', setRole);
