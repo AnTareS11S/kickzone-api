@@ -8,6 +8,7 @@ import sharp from 'sharp';
 import Referee from '../models/referee.model.js';
 import Coach from '../models/coach.model.js';
 import Conversation from '../models/conversation.model.js';
+import Admin from '../models/admin.model.js';
 
 export const addUser = async (req, res, next) => {
   if (req.user.id !== req.params.id) {
@@ -212,17 +213,19 @@ export const getUserInfoByUserId = async (req, res, next) => {
       return res.status(404).json({ message: 'Conversation not found' });
     }
 
-    const [player, referee, coach] = await Promise.all([
+    const [player, referee, coach, admin] = await Promise.all([
       Player.findOne({ $or: [{ user: userId }, { _id: userId }] }),
       Referee.findOne({ $or: [{ user: userId }, { _id: userId }] }),
       Coach.findOne({ $or: [{ user: userId }, { _id: userId }] }),
+      Admin.findOne({ $or: [{ user: userId }, { _id: userId }] }),
     ]);
 
-    if (!player && !referee && !coach) {
+    if (!player && !referee && !coach && !admin) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const userAccountId = player?._id || referee?._id || coach?._id;
+    const userAccountId =
+      player?._id || referee?._id || coach?._id || admin?._id;
 
     const otherMemberId = conversation.members.find(
       (member) => member.toString() !== userAccountId.toString()
@@ -232,28 +235,20 @@ export const getUserInfoByUserId = async (req, res, next) => {
       return res.status(404).json({ message: 'No other participant found' });
     }
 
-    const [otherPlayer, otherReferee, otherCoach] = await Promise.all([
-      Player.findOne({ _id: otherMemberId }),
-      Referee.findOne({ _id: otherMemberId }),
-      Coach.findOne({ _id: otherMemberId }),
-    ]);
+    const [otherPlayer, otherReferee, otherCoach, otherAdmin] =
+      await Promise.all([
+        Player.findOne({ _id: otherMemberId }),
+        Referee.findOne({ _id: otherMemberId }),
+        Coach.findOne({ _id: otherMemberId }),
+        Admin.findOne({ _id: otherMemberId }),
+      ]);
 
-    if (!otherPlayer && !otherReferee && !otherCoach) {
+    if (!otherPlayer && !otherReferee && !otherCoach && !otherAdmin) {
       return res.status(404).json({ message: 'Other user not found' });
     }
 
-    const otherUserAccount = otherPlayer || otherReferee || otherCoach;
-
-    const setImageUrl = (item) => {
-      if (item.photo) {
-        item.imageUrl = 'https://d3awt09vrts30h.cloudfront.net/' + item.photo;
-      } else {
-        item.imageUrl = null;
-      }
-      return item;
-    };
-
-    setImageUrl(otherUserAccount);
+    const otherUserAccount =
+      otherPlayer || otherReferee || otherCoach || otherAdmin;
 
     res.status(200).json(otherUserAccount);
   } catch (error) {
@@ -265,17 +260,19 @@ export const getAccountByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
 
-    const [player, referee, coach] = await Promise.all([
+    const [player, referee, coach, admin] = await Promise.all([
       Player.findOne({ user: userId }),
       Referee.findOne({ user: userId }),
       Coach.findOne({ user: userId }),
+      Admin.findOne({ user: userId }),
     ]);
 
-    if (!player && !referee && !coach) {
+    if (!player && !referee && !coach && !admin) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const userAccountId = player?._id || referee?._id || coach?._id;
+    const userAccountId =
+      player?._id || referee?._id || coach?._id || admin?._id;
 
     res.status(200).json(userAccountId);
   } catch (error) {
