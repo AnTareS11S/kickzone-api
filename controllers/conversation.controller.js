@@ -1,4 +1,5 @@
 import Conversation from '../models/conversation.model.js';
+import Message from '../models/message.model.js';
 
 export const createConversation = async (req, res, next) => {
   try {
@@ -51,6 +52,18 @@ export const getConversationIncludesTwoUsers = async (req, res, next) => {
     }
 
     res.status(200).json(conversation);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteConversation = async (req, res, next) => {
+  try {
+    await Conversation.findByIdAndDelete(req.params.conversationId);
+
+    await Message.deleteMany({ conversation: req.params.conversationId });
+
+    res.status(204).json('Conversation has been deleted');
   } catch (error) {
     next(error);
   }
