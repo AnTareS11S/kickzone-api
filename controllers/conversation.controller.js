@@ -41,16 +41,6 @@ export const getConversationIncludesTwoUsers = async (req, res, next) => {
       },
     });
 
-    if (!conversation) {
-      const newConversation = new Conversation({
-        members: [firstUserId, secondUserId],
-      });
-
-      await newConversation.save();
-
-      return res.status(201).json(newConversation);
-    }
-
     res.status(200).json(conversation);
   } catch (error) {
     next(error);
