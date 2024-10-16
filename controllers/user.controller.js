@@ -304,10 +304,11 @@ export const getAllAccounts = async (req, res, next) => {
       };
     }
 
-    const [players, coaches, referees] = await Promise.all([
+    const [players, coaches, referees, admins] = await Promise.all([
       Player.find(searchQuery),
       Coach.find(searchQuery),
       Referee.find(searchQuery),
+      Admin.find(searchQuery),
     ]);
 
     const setImageUrl = (item) => {
@@ -322,8 +323,14 @@ export const getAllAccounts = async (req, res, next) => {
     const modifyPlayers = players?.map((player) => setImageUrl(player));
     const modifyCoaches = coaches?.map((coach) => setImageUrl(coach));
     const modifyReferees = referees?.map((referee) => setImageUrl(referee));
+    const modifyAdmins = admins?.map((admin) => setImageUrl(admin));
 
-    const people = [...modifyPlayers, ...modifyCoaches, ...modifyReferees];
+    const people = [
+      ...modifyPlayers,
+      ...modifyCoaches,
+      ...modifyReferees,
+      ...modifyAdmins,
+    ];
 
     res.status(200).json(people);
   } catch (error) {
