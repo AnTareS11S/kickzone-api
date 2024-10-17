@@ -250,6 +250,17 @@ export const getUserInfoByUserId = async (req, res, next) => {
     const otherUserAccount =
       otherPlayer || otherReferee || otherCoach || otherAdmin;
 
+    const setImageUrl = (item) => {
+      if (item.photo) {
+        item.imageUrl = 'https://d3awt09vrts30h.cloudfront.net/' + item.photo;
+      } else {
+        item.imageUrl = null;
+      }
+      return item;
+    };
+
+    setImageUrl(otherUserAccount);
+
     res.status(200).json(otherUserAccount);
   } catch (error) {
     next(error);
