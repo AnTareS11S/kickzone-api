@@ -84,7 +84,6 @@ import {
   editFormation,
   getFormations,
 } from '../controllers/formation.controller.js';
-import { sendNotification } from '../controllers/notification.controller.js';
 import {
   createTerm,
   deleteTerm,
@@ -214,9 +213,6 @@ router.get('/sponsor', getAllSponsors);
 router.post('/sponsor/add', customUpload, addSponsor);
 router.post('/sponsor/edit/:id', customUpload, editSponsor);
 router.delete('/sponsor/delete/:id', deleteSponsor);
-// Notification
-router.post('/notification/:recipientId', sendNotification);
-router.get('/get-notification/:recipientId', sendNotification);
 // Terms
 router.get('/terms', getTerms);
 router.post('/terms/add', customUpload, createTerm);
