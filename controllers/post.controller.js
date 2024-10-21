@@ -238,10 +238,16 @@ export const removeLikeFromPost = async (req, res, next) => {
 
 export const deletePost = async (req, res, next) => {
   try {
-    const mainPost = await Post.findById(req.body.id).populate('author');
+    const postToDelete = await Post.findById(req.body.id).populate('author');
 
-    if (!mainPost) {
+    if (!postToDelete) {
       return res.status(404).json({ message: 'Post not found' });
+    }
+
+    if (postToDelete.parentId) {
+      await Post.findByIdAndUpdate(postToDelete.parentId, {
+        $pull: { children: postToDelete._id },
+      });
     }
 
     const descendantPosts = await getAllChildPosts(req.body.id);
@@ -254,12 +260,12 @@ export const deletePost = async (req, res, next) => {
     const uniqueAuthorIds = new Set(
       [
         ...descendantPosts.map((post) => post.author?._id?.toString()),
-        mainPost.author?._id?.toString(),
+        postToDelete.author?._id?.toString(),
       ].filter((id) => id !== undefined)
     );
 
-    if (mainPost.postPhoto) {
-      await deleteImageFromS3(mainPost.postPhoto);
+    if (postToDelete.postPhoto) {
+      await deleteImageFromS3(postToDelete.postPhoto);
     }
 
     await Post.deleteMany({ _id: { $in: descendantPostIds } });
