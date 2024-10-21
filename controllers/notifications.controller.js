@@ -1,41 +1,5 @@
 import Notification from '../models/notifications.model.js';
 
-export const updateNotificationCount = async (req, res, next) => {
-  try {
-    const { receiverId } = req.params;
-
-    const { isIncrement, notificationType, senderId, postId } = req.body;
-
-    let notification = await Notification.findOne({ receiverId });
-
-    if (!notification) {
-      notification = new Notification({
-        receiverId,
-        unreadCount: 0,
-        notifications: [],
-      });
-    }
-
-    if (isIncrement) {
-      notification.unreadCount += 1;
-      notification.notifications.push({
-        type: notificationType,
-        senderId,
-        postId,
-        isRead: false,
-      });
-    } else {
-      notification.unreadCount = Math.max(0, notification.unreadCount - 1);
-    }
-
-    await notification.save();
-
-    res.status(200).json(notification);
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const getNotifications = async (req, res, next) => {
   try {
     const { receiverId } = req.params;
