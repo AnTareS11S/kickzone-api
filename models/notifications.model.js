@@ -23,7 +23,7 @@ const notificationSchema = new mongoose.Schema(
           ref: 'User',
           required: true,
         },
-        postid: {
+        postId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: 'Post',
           required: true,
