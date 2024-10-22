@@ -1,16 +1,34 @@
 import Notification from '../models/notifications.model.js';
 
-export const getNotifications = async (req, res, next) => {
+export const getUnreadNotificationsCount = async (req, res, next) => {
   try {
     const { receiverId } = req.params;
 
-    const notification = await Notification.findOne({ receiverId })
-      .populate('notifications.senderId', 'username imageUrl')
-      .populate('notifications.postId', 'title');
+    const notification = await Notification.findOne({ receiverId });
 
     res.status(200).json({
       unreadCount: notification?.unreadCount || 0,
-      notifications: notification?.notifications || [],
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getNotificationsDetails = async (req, res, next) => {
+  try {
+    const { receiverId } = req.params;
+
+    const notification = await Notification.findOne({
+      receiverId,
+    }).populate('notifications.senderId', 'username _id imageUrl');
+
+    const sortedNotifications =
+      notification?.notifications.sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }) || [];
+
+    res.status(200).json({
+      notifications: sortedNotifications,
     });
   } catch (error) {
     next(error);
