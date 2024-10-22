@@ -23,6 +23,7 @@ import matchRoutes from './routes/match.routes.js';
 import notificationsRoutes from './routes/notifications.routes.js';
 import cookieParser from 'cookie-parser';
 import { S3Client } from '@aws-sdk/client-s3';
+import { updateNotificationCount } from './utils/helper.js';
 
 dotenv.config();
 
@@ -79,32 +80,6 @@ const getUser = (userId) => {
   return users.find((user) => user.userId === userId);
 };
 
-const incrementUnreadCount = (userId) => {
-  const currentCount = userUnreadMessagesCount.get(userId) || 0;
-  userUnreadMessagesCount.set(userId, currentCount + 1);
-  return currentCount + 1;
-};
-
-const incrementUnreadNotificationCount = (userId) => {
-  const currentCount = notificationCount.get(userId) || 0;
-  notificationCount.set(userId, currentCount + 1);
-  return currentCount + 1;
-};
-
-const decrementUnreadNotificationCount = (userId, amount = 1) => {
-  const currentCount = notificationCount.get(userId) || 0;
-  const newCount = Math.max(0, currentCount - amount);
-  notificationCount.set(userId, newCount);
-  return newCount;
-};
-
-const decrementUnreadCount = (userId, amount = 1) => {
-  const currentCount = userUnreadMessagesCount.get(userId) || 0;
-  const newCount = Math.max(0, currentCount - amount);
-  userUnreadMessagesCount.set(userId, newCount);
-  return newCount;
-};
-
 // Socket.IO Event Handlers
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
@@ -133,14 +108,6 @@ io.on('connection', (socket) => {
           conversationId,
         });
       }
-      const newUnreadCount = incrementUnreadCount(receiverId);
-      if (user) {
-        io.to(user.socketId).emit('getUnreadCount', newUnreadCount);
-        io.to(user.socketId).emit('getUnreadMessage', {
-          conversationId,
-          senderId,
-        });
-      }
     }
   );
 
@@ -167,51 +134,49 @@ io.on('connection', (socket) => {
 
   socket.on(
     'newUnreadNotification',
-    ({ userId, authorId, isLiked, isComment }) => {
+    async ({ userId, authorId, isComment, postId, isDelete = false }) => {
       const user = getUser(authorId);
-      if (user) {
-        if (isLiked || isComment) {
-          const newUnreadNotificationCount =
-            incrementUnreadNotificationCount(authorId);
-          io.to(user.socketId).emit(
-            'getUnreadNotificationCount',
-            newUnreadNotificationCount
-          );
-        } else {
-          const newUnreadNotificationCount =
-            decrementUnreadNotificationCount(authorId);
-          io.to(user.socketId).emit(
-            'getUnreadNotificationCount',
-            newUnreadNotificationCount
-          );
+      try {
+        const notificationType = isComment ? 'comment' : 'like';
+        const newCount = await updateNotificationCount(
+          authorId,
+          notificationType,
+          userId,
+          postId,
+          isDelete
+        );
+        if (user) {
+          io.to(user.socketId).emit('getUnreadNotificationCount', newCount);
         }
+      } catch (error) {
+        console.error('Error marking as read:', error);
       }
     }
   );
 
-  socket.on('newUnreadMessage', ({ userId, conversationId }) => {
-    const user = getUser(userId);
-    if (user) {
-      const newUnreadNotificationCount = incrementUnreadCount(userId);
-      io.to(user.socketId).emit(
-        'getUnreadNotificationCount',
-        newUnreadNotificationCount
-      );
-    }
-  });
+  // socket.on('newUnreadMessage', ({ userId, conversationId }) => {
+  //   const user = getUser(userId);
+  //   if (user) {
+  //     const newUnreadNotificationCount = incrementUnreadCount(userId);
+  //     io.to(user.socketId).emit(
+  //       'getUnreadNotificationCount',
+  //       newUnreadNotificationCount
+  //     );
+  //   }
+  // });
 
-  socket.on('markAsRead', ({ conversationId, userId }) => {
-    try {
-      const user = getUser(userId);
-      if (user) {
-        const newUnreadCount = decrementUnreadCount(userId);
-        io.to(user.socketId).emit('getUnreadCount', newUnreadCount);
-        io.emit('messageRead', { conversationId, userId });
-      }
-    } catch (error) {
-      console.error('Error marking as read:', error);
-    }
-  });
+  // socket.on('markAsRead', ({ conversationId, userId }) => {
+  //   try {
+  //     const user = getUser(userId);
+  //     if (user) {
+  //       const newUnreadCount = decrementUnreadCount(userId);
+  //       io.to(user.socketId).emit('getUnreadCount', newUnreadCount);
+  //       io.emit('messageRead', { conversationId, userId });
+  //     }
+  //   } catch (error) {
+  //     console.error('Error marking as read:', error);
+  //   }
+  // });
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
