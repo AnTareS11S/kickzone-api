@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import userRoutes from './routes/user.routes.js';
@@ -46,17 +47,29 @@ export const s3 = new S3Client({
 const app = express();
 const httpServer = createServer(app);
 
-// Socket.IO Setup
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+    credentials: true,
+  })
+);
+
+const PORT = process.env.PORT || 3000;
+
 const io = new Server(httpServer, {
   cors: {
-    origin: 'http://localhost:5173',
+    origin: process.env.FRONTED_URL,
+    methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
-// Socket.IO State
+const connections = {};
 let users = [];
+
+// Socket.IO State
 let userUnreadMessagesCount = new Map();
-let notificationCount = new Map();
 
 // Socket.IO Helper Functions
 const addUser = (userId, socketId) => {
@@ -111,6 +124,10 @@ io.on('connection', (socket) => {
     }
   );
 
+  socket.on('sendHi', ({ data }) => {
+    io.emit('getHi', { data });
+  });
+
   socket.on('newConversation', ({ senderId, receiverId, conversationId }) => {
     const receiverSocket = getUser(receiverId);
     if (receiverSocket) {
@@ -134,16 +151,27 @@ io.on('connection', (socket) => {
 
   socket.on(
     'newUnreadNotification',
-    async ({ userId, authorId, isComment, postId, isDelete = false }) => {
+    async ({
+      userId,
+      authorId,
+      isComment,
+      postId,
+      isDelete = false,
+      isRead = false,
+      notificationId,
+    }) => {
       const user = getUser(authorId);
       try {
+        console.log('notificationIddd', notificationId, isRead);
         const notificationType = isComment ? 'comment' : 'like';
         const newCount = await updateNotificationCount(
           authorId,
           notificationType,
           userId,
           postId,
-          isDelete
+          isDelete,
+          notificationId,
+          isRead
         );
         if (user) {
           io.to(user.socketId).emit('getUnreadNotificationCount', newCount);
@@ -153,6 +181,11 @@ io.on('connection', (socket) => {
       }
     }
   );
+
+  socket.on('getUnreadNotificationCount', ({ userId, unreadCount }) => {
+    // Emituj event do wszystkich połączonych klientów danego użytkownika
+    io.to(userId).emit('getUnreadNotificationCountt', unreadCount);
+  });
 
   // socket.on('newUnreadMessage', ({ userId, conversationId }) => {
   //   const user = getUser(userId);
@@ -220,8 +253,8 @@ app.use((err, req, res, next) => {
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
-    httpServer.listen(3000, () => {
-      console.log('Server is running on port 3000');
+    httpServer.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
     });
     console.log('Connected to MongoDB');
   })
