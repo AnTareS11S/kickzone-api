@@ -38,19 +38,24 @@ export const getNotificationsDetails = async (req, res, next) => {
 export const markNotificationAsRead = async (req, res, next) => {
   try {
     const { receiverId } = req.params;
+    const { notificationId } = req.body;
 
     const notification = await Notification.findOne({ receiverId });
 
-    if (notification) {
-      notification.unreadCount = 0;
-      notification.notifications.forEach((n) => {
-        n.isRead = true;
-      });
+    const unreadNotification = notification.notifications.find(
+      (n) => n._id.toString() === notificationId
+    );
 
-      await notification.save();
+    if (unreadNotification) {
+      unreadNotification.isRead = true;
+      notification.unreadCount = Math.max(0, notification.unreadCount - 1);
     }
 
-    res.status(200).json({ success: true });
+    await notification.save();
+
+    res.status(200).json({
+      message: 'Notification marked as read',
+    });
   } catch (error) {
     next(error);
   }
