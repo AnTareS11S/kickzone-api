@@ -60,3 +60,29 @@ export const markNotificationAsRead = async (req, res, next) => {
     next(error);
   }
 };
+
+export const deleteNotification = async (req, res, next) => {
+  try {
+    const { receiverId } = req.params;
+    const { senderId, postId, type } = req.body;
+
+    const notification = await Notification.findOne({ receiverId });
+
+    notification.notifications = notification.notifications.filter(
+      (n) =>
+        !(
+          n.senderId.toString() === senderId &&
+          n.postId.toString() === postId &&
+          n.type === type
+        )
+    );
+
+    await notification.save();
+
+    res.status(200).json({
+      message: 'Notification deleted',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
