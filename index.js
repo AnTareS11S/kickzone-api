@@ -124,10 +124,6 @@ io.on('connection', (socket) => {
     }
   );
 
-  socket.on('sendHi', ({ data }) => {
-    io.emit('getHi', { data });
-  });
-
   socket.on('newConversation', ({ senderId, receiverId, conversationId }) => {
     const receiverSocket = getUser(receiverId);
     if (receiverSocket) {
@@ -139,53 +135,82 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('sendNotification', ({ senderId, receiverId, type }) => {
-    const receiver = getUser(receiverId);
-    if (receiver) {
-      io.to(receiver.socketId).emit('getNotification', {
-        senderId,
-        type,
-      });
+  socket.on(
+    'sendNotification',
+    ({ senderId, receiverId, type, postId, createdAt }) => {
+      const receiver = getUser(receiverId);
+      if (receiver) {
+        io.to(receiver.socketId).emit('getNotification', {
+          senderId,
+          type,
+          postId,
+          createdAt,
+        });
+      }
     }
-  });
+  );
 
   socket.on(
     'newUnreadNotification',
     async ({
       userId,
       authorId,
-      isComment,
       postId,
-      isDelete = false,
-      isRead = false,
+      type,
+      action,
       notificationId,
+      username,
+      userImg,
     }) => {
       const user = getUser(authorId);
       try {
-        console.log('notificationIddd', notificationId, isRead);
-        const notificationType = isComment ? 'comment' : 'like';
-        const newCount = await updateNotificationCount(
+        const result = await updateNotificationCount(
           authorId,
-          notificationType,
           userId,
           postId,
-          isDelete,
-          notificationId,
-          isRead
+          type,
+          action,
+          notificationId
         );
+
+        console.log(result);
+
         if (user) {
-          io.to(user.socketId).emit('getUnreadNotificationCount', newCount);
+          io.to(user.socketId).emit(
+            'getUnreadNotificationCount',
+            result?.unreadCount
+          );
+
+          switch (action) {
+            case 'create':
+              if (result?.notification) {
+                io.to(user.socketId).emit('getNotification', {
+                  senderId: userId,
+                  type,
+                  postId,
+                  username: username,
+                  userImg: userImg,
+                  ...result?.notification,
+                });
+              }
+              break;
+            case 'delete':
+              io.to(user.socketId).emit('removeNotification', {
+                senderId: userId,
+                authorId,
+                postId,
+                type,
+              });
+              break;
+            default:
+              break;
+          }
         }
       } catch (error) {
         console.error('Error marking as read:', error);
       }
     }
   );
-
-  socket.on('getUnreadNotificationCount', ({ userId, unreadCount }) => {
-    // Emituj event do wszystkich połączonych klientów danego użytkownika
-    io.to(userId).emit('getUnreadNotificationCountt', unreadCount);
-  });
 
   // socket.on('newUnreadMessage', ({ userId, conversationId }) => {
   //   const user = getUser(userId);
