@@ -173,8 +173,6 @@ io.on('connection', (socket) => {
           notificationId
         );
 
-        console.log(result);
-
         if (user) {
           io.to(user.socketId).emit(
             'getUnreadNotificationCount',
