@@ -1,92 +1,119 @@
+import mongoose from 'mongoose';
 import Notification from '../models/notifications.model.js';
 
 export const updateNotificationCount = async (
   receiverId,
-  notificationType,
   senderId,
   postId,
-  isDelete
+  type,
+  action,
+  notificationId = null
 ) => {
   try {
-    let notification = await Notification.findOne({ receiverId });
+    let notification = await Notification.findOne({
+      receiverId,
+    });
+    let result = {
+      unreadCount: 0,
+      notification: null,
+      action,
+    };
 
-    if (!notification) {
-      notification = new Notification({
+    if (!notification && action === 'create') {
+      notification = await Notification.create({
         receiverId,
-        unreadCount: 0,
-        notifications: [],
+        unreadCount: 1,
+        notifications: [
+          {
+            senderId,
+            postId,
+            type,
+            isRead: false,
+            createdAt: Date.now(),
+          },
+        ],
       });
+
+      result.unreadCount = 1;
+      result.notification = notification.notifications[0];
+      return result;
     }
 
-    if (isDelete) {
-      const notificationsToRemove = notification.notifications.filter(
-        (n) => n.postId.toString() === postId.toString() && n.type === 'comment'
-      );
-
-      const unreadToRemove = notificationsToRemove.filter(
-        (n) => !n.isRead
-      ).length;
-
-      notification.unreadCount = Math.max(
-        0,
-        notification.unreadCount - unreadToRemove
-      );
-
-      notification.notifications = notification.notifications.filter(
-        (n) =>
-          !(n.postId.toString() === postId.toString() && n.type === 'comment')
-      );
-    } else {
-      if (notificationType === 'like') {
+    switch (action) {
+      case 'create':
+        // Check for existing similar notification
         const existingNotification = notification.notifications.find(
           (n) =>
             n.senderId.toString() === senderId.toString() &&
             n.postId.toString() === postId.toString() &&
-            n.type === notificationType
+            n.type === type
         );
 
         if (!existingNotification) {
-          notification.unreadCount += 1;
-          notification.notifications.push({
-            type: notificationType,
+          const newNotification = {
             senderId,
             postId,
+            type,
             isRead: false,
-          });
-        } else {
-          // Unlike
-          const notificationIndex = notification.notifications.findIndex(
-            (n) =>
-              n.senderId.toString() === senderId.toString() &&
-              n.postId.toString() === postId.toString() &&
-              n.type === notificationType
+            createdAt: Date.now(),
+          };
+
+          await Notification.updateOne(
+            { receiverId },
+            {
+              $inc: { unreadCount: 1 },
+              $push: { notifications: newNotification },
+            }
           );
 
-          if (notificationIndex !== -1) {
-            // Decrease unread count if the notification is unread
-            if (!notification.notifications[notificationIndex].isRead) {
-              notification.unreadCount = Math.max(
-                0,
-                notification.unreadCount - 1
-              );
-            }
-            // Remove the notification
-            notification.notifications.splice(notificationIndex, 1);
-          }
+          result.notification = newNotification;
+          result.unreadCount = (notification.unreadCount || 0) + 1;
+        } else {
+          result.unreadCount = notification.unreadCount || 0;
         }
-      } else if (notificationType === 'comment') {
-        notification.unreadCount += 1;
-        notification.notifications.push({
-          type: notificationType,
-          senderId,
-          postId,
-          isRead: false,
-        });
-      }
+
+        break;
+
+      case 'delete':
+        // Handle unlike or comment deletion
+        await Notification.updateOne(
+          { receiverId },
+          {
+            $pull: {
+              notifications: {
+                postId,
+                senderId,
+                type,
+                isRead: false,
+              },
+            },
+            $inc: { unreadCount: -1 },
+          }
+        );
+        break;
+      case 'read':
+        if (notificationId) {
+          await Notification.updateOne(
+            {
+              receiverId,
+              'notifications._id': notificationId,
+            },
+            {
+              $set: { 'notifications.$.isRead': true },
+              $inc: { unreadCount: -1 },
+            }
+          );
+        }
+        break;
     }
 
-    await notification.save();
-    return notification.unreadCount;
+    // Get updated notification count
+    const updatedNotification = await Notification.findOne({ receiverId });
+    result.unreadCount = updatedNotification
+      ? updatedNotification.unreadCount
+      : 0;
+
+    return result;
   } catch (error) {
     console.error('Error updating notification count:', error);
     throw error;
