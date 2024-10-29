@@ -74,8 +74,17 @@ export const updateNotificationCount = async (
 
         break;
 
-      case 'delete':
+      case 'delete': {
         // Handle unlike or comment deletion
+        const notificationToDelete = notification.notifications.find(
+          (n) =>
+            n.postId.toString() === postId.toString() &&
+            n.senderId.toString() === senderId.toString() &&
+            n.type === type &&
+            !n.isRead
+        );
+
+        // Remove notification regardless of read status
         await Notification.updateOne(
           { receiverId },
           {
@@ -84,19 +93,21 @@ export const updateNotificationCount = async (
                 postId,
                 senderId,
                 type,
-                isRead: false,
               },
             },
-            $inc: { unreadCount: -1 },
+            // Only decrement the counter if we found an unread notification
+            ...(notificationToDelete && { $inc: { unreadCount: -1 } }),
           }
         );
         break;
+      }
       case 'read':
         if (notificationId) {
           await Notification.updateOne(
             {
               receiverId,
               'notifications._id': notificationId,
+              'notifications.isRead': false,
             },
             {
               $set: { 'notifications.$.isRead': true },
@@ -104,6 +115,8 @@ export const updateNotificationCount = async (
             }
           );
         }
+        break;
+      default:
         break;
     }
 
