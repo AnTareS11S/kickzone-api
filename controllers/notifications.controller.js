@@ -61,6 +61,28 @@ export const markNotificationAsRead = async (req, res, next) => {
   }
 };
 
+export const markAllNotificationsAsRead = async (req, res, next) => {
+  try {
+    const { receiverId } = req.params;
+
+    const notification = await Notification.findOne({ receiverId });
+
+    notification.notifications.forEach((n) => {
+      n.isRead = true;
+    });
+
+    notification.unreadCount = 0;
+
+    await notification.save();
+
+    res.status(200).json({
+      message: 'All notifications marked as read',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const deleteNotification = async (req, res, next) => {
   try {
     const { receiverId } = req.params;
