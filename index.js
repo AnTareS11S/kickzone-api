@@ -210,6 +210,14 @@ io.on('connection', (socket) => {
     }
   );
 
+  socket.on('updateUnreadNotificationCount', ({ userId, count }) => {
+    const user = getUser(userId);
+    console.log('User:', userId, count);
+    if (user) {
+      io.to(user.socketId).emit('getCount', count);
+    }
+  });
+
   // socket.on('newUnreadMessage', ({ userId, conversationId }) => {
   //   const user = getUser(userId);
   //   if (user) {
