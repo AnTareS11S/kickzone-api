@@ -13,9 +13,6 @@ import AllPlayerStatsBySeason from '../models/allPlayerStatsBySeason.model.js';
 
 export const addPlayer = async (req, res, next) => {
   try {
-    const user = await User.findById(req.body.user);
-    user.role = 'player';
-    await user.save();
     if (!req.file || !req.file.buffer) {
       const existedPlayer = await Player.findOne({ user: req.body.user });
       if (existedPlayer) {
@@ -24,11 +21,14 @@ export const addPlayer = async (req, res, next) => {
           { ...req.body },
           { new: true }
         );
+        await User.findOneAndUpdate(
+          { _id: req.body.user },
+          { isProfileFilled: true },
+          { new: true }
+        );
         return res.status(200).json(updatedPlayer);
       }
-      const newPlayer = new Player({
-        ...req.body,
-      });
+      const newPlayer = new Player(req.body);
       await newPlayer.save();
       return res.status(201).json(newPlayer);
     }
@@ -47,6 +47,11 @@ export const addPlayer = async (req, res, next) => {
       const updatedPlayer = await Player.findOneAndUpdate(
         { user: req.body.user },
         { ...req.body, photo: photoName },
+        { new: true }
+      );
+      await User.findOneAndUpdate(
+        { _id: req.body.user },
+        { isProfileFilled: true },
         { new: true }
       );
       return res.status(200).json(updatedPlayer);
