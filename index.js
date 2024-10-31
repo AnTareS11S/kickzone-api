@@ -99,6 +99,12 @@ const incrementUnreadMessageCount = (userId) => {
   return count + 1;
 };
 
+const decrementUnreadMessageCount = (userId) => {
+  const count = userUnreadMessagesCount.get(userId) || 0;
+  userUnreadMessagesCount.set(userId, count - 1);
+  return count - 1;
+};
+
 // Socket.IO Event Handlers
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
@@ -215,36 +221,18 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('newUnreadMessage', ({ userId, conversationId }) => {
+  socket.on('messagesRead', ({ userId, conversationId }) => {
     const user = getUser(userId);
     if (user) {
-      if (!connections[userId]?.unreadConversations?.includes(conversationId)) {
-        const newUnreadMessageCount = incrementUnreadMessageCount(userId);
+      if (connections[userId]?.unreadConversations?.includes(conversationId)) {
+        const newUnreadMessageCount = decrementUnreadMessageCount(userId);
         io.to(user.socketId).emit(
           'getUnreadMessageCount',
           newUnreadMessageCount
         );
       }
-
-      if (!connections[userId]) {
-        connections[userId] = { unreadConversations: [] };
-      }
-      connections[userId].unreadConversations.push(conversationId);
     }
   });
-
-  // socket.on('markAsRead', ({ conversationId, userId }) => {
-  //   try {
-  //     const user = getUser(userId);
-  //     if (user) {
-  //       const newUnreadCount = decrementUnreadCount(userId);
-  //       io.to(user.socketId).emit('getUnreadCount', newUnreadCount);
-  //       io.emit('messageRead', { conversationId, userId });
-  //     }
-  //   } catch (error) {
-  //     console.error('Error marking as read:', error);
-  //   }
-  // });
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
