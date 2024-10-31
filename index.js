@@ -93,6 +93,12 @@ const getUser = (userId) => {
   return users.find((user) => user.userId === userId);
 };
 
+const incrementUnreadMessageCount = (userId) => {
+  const count = userUnreadMessagesCount.get(userId) || 0;
+  userUnreadMessagesCount.set(userId, count + 1);
+  return count + 1;
+};
+
 // Socket.IO Event Handlers
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
@@ -115,26 +121,18 @@ io.on('connection', (socket) => {
           conversationId,
           createdAt: Date.now(),
         });
-        io.emit('conversationCreated', {
-          senderId,
-          receiverId,
-          conversationId,
-        });
       }
     }
   );
 
-  socket.on('newConversation', ({ senderId, receiverId, conversationId }) => {
+  socket.on('newConversation', ({ receiverId }) => {
     const receiverSocket = getUser(receiverId);
     if (receiverSocket) {
-      io.emit('conversationCreated', {
-        senderId,
-        receiverId,
-        conversationId,
-      });
+      io.emit('conversationCreated');
     }
   });
 
+  // Send notification to receiver
   socket.on(
     'sendNotification',
     ({ senderId, receiverId, type, postId, createdAt }) => {
@@ -149,7 +147,7 @@ io.on('connection', (socket) => {
       }
     }
   );
-
+  // Upadate unread notification count
   socket.on(
     'newUnreadNotification',
     async ({
@@ -209,7 +207,7 @@ io.on('connection', (socket) => {
       }
     }
   );
-
+  // Mark notification as read
   socket.on('updateUnreadNotificationCount', ({ userId, count }) => {
     const user = getUser(userId);
     if (user) {
@@ -217,16 +215,23 @@ io.on('connection', (socket) => {
     }
   });
 
-  // socket.on('newUnreadMessage', ({ userId, conversationId }) => {
-  //   const user = getUser(userId);
-  //   if (user) {
-  //     const newUnreadNotificationCount = incrementUnreadCount(userId);
-  //     io.to(user.socketId).emit(
-  //       'getUnreadNotificationCount',
-  //       newUnreadNotificationCount
-  //     );
-  //   }
-  // });
+  socket.on('newUnreadMessage', ({ userId, conversationId }) => {
+    const user = getUser(userId);
+    if (user) {
+      if (!connections[userId]?.unreadConversations?.includes(conversationId)) {
+        const newUnreadMessageCount = incrementUnreadMessageCount(userId);
+        io.to(user.socketId).emit(
+          'getUnreadMessageCount',
+          newUnreadMessageCount
+        );
+      }
+
+      if (!connections[userId]) {
+        connections[userId] = { unreadConversations: [] };
+      }
+      connections[userId].unreadConversations.push(conversationId);
+    }
+  });
 
   // socket.on('markAsRead', ({ conversationId, userId }) => {
   //   try {
