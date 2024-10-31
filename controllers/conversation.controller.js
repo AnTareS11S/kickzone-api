@@ -1,9 +1,5 @@
-import Admin from '../models/admin.model.js';
-import Coach from '../models/coach.model.js';
 import Conversation from '../models/conversation.model.js';
 import Message from '../models/message.model.js';
-import Player from '../models/player.model.js';
-import Referee from '../models/referee.model.js';
 
 export const createConversation = async (req, res, next) => {
   try {
@@ -23,13 +19,30 @@ export const getConversations = async (req, res, next) => {
   try {
     const { userId } = req.params;
 
-    const conversation = await Conversation.find({
+    const conversations = await Conversation.find({
       members: {
         $in: [userId],
       },
     });
 
-    res.status(200).json(conversation);
+    const unreadConversations = (
+      await Promise.all(
+        conversations.map(async (conversation) => {
+          const unreadMessages = await Message.find({
+            conversation: conversation._id,
+            receiver: userId,
+            isRead: false,
+          });
+
+          return unreadMessages.length > 0 ? conversation._id : null;
+        })
+      )
+    ).filter(Boolean);
+
+    res.status(200).json({
+      conversations,
+      unreadConversations,
+    });
   } catch (error) {
     next(error);
   }
@@ -51,7 +64,7 @@ export const getConversationIncludesTwoUsers = async (req, res, next) => {
   }
 };
 
-export const getUnreadConversations = async (req, res, next) => {
+export const getUnreadConversationsCount = async (req, res, next) => {
   try {
     const { userId } = req.params;
 
@@ -84,7 +97,8 @@ export const getUnreadConversations = async (req, res, next) => {
 
 export const markConversationAsRead = async (req, res, next) => {
   try {
-    const { conversationId, userId } = req.body;
+    const { conversationId } = req.params;
+    const { userId } = req.body;
 
     await Message.updateMany(
       {
