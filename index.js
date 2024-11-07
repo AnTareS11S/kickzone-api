@@ -112,8 +112,14 @@ io.on('connection', (socket) => {
   socket.on('addUser', (userId) => {
     addUser(userId, socket.id);
     io.emit('getUsers', users);
-    const unreadCount = userUnreadMessagesCount.get(userId) || 0;
-    socket.emit('getUnreadCount', unreadCount);
+    const unreadMessageCount = userUnreadMessagesCount.get(userId) || 0;
+    if (!connections[userId]) {
+      connections[userId] = {
+        socketId: socket.id,
+        unreadConversations: [],
+      };
+    }
+    socket.emit('getUnreadCount', unreadMessageCount);
   });
 
   socket.on(
@@ -121,13 +127,32 @@ io.on('connection', (socket) => {
     async ({ senderId, receiverId, text, conversationId }) => {
       const user = getUser(receiverId);
       if (user) {
-        io.to(user.socketId).emit('getMessage', {
+        io.to(user?.socketId).emit('getMessage', {
           senderId,
           text,
           conversationId,
           createdAt: Date.now(),
         });
       }
+
+      if (!connections[senderId]) {
+        connections[senderId] = {
+          socketId: socket.id,
+          unreadConversations: [],
+        };
+      } else {
+        if (
+          !connections[senderId]?.unreadConversations?.includes(conversationId)
+        ) {
+          connections[senderId].unreadConversations.push(conversationId);
+        }
+      }
+
+      const newUnreadMessageCount = incrementUnreadMessageCount(senderId);
+      io.to(user?.socketId).emit(
+        'getUnreadMessageCount',
+        newUnreadMessageCount
+      );
     }
   );
 
@@ -221,12 +246,24 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('messagesRead', ({ userId, conversationId }) => {
+  socket.on('updateUnreadMessageCount', ({ userId, count }) => {
     const user = getUser(userId);
     if (user) {
-      if (connections[userId]?.unreadConversations?.includes(conversationId)) {
+      io.to(user.socketId).emit('getUnreadCountt', count);
+    }
+  });
+
+  socket.on('messagesRead', ({ userId, conversationId }) => {
+    const user = getUser(userId);
+    if (user && connections[userId]) {
+      const unreadConversations =
+        connections[userId]?.unreadConversations || [];
+      if (unreadConversations.includes(conversationId)) {
+        connections[userId].unreadConversations = unreadConversations.filter(
+          (id) => id !== conversationId
+        );
         const newUnreadMessageCount = decrementUnreadMessageCount(userId);
-        io.to(user.socketId).emit(
+        io.to(user?.socketId).emit(
           'getUnreadMessageCount',
           newUnreadMessageCount
         );
