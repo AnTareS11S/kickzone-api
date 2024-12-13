@@ -12,6 +12,11 @@ import {
 } from '../controllers/user.controller.js';
 import { verifyToken } from '../utils/verifyUser.js';
 import upload from '../utils/upload.js';
+import {
+  getRoleChangeNotificationByUserId,
+  hasRoleChangeNotification,
+  markRoleChangeNotificationAsRead,
+} from '../controllers/roleChangeNotification.controller.js';
 
 const router = express.Router();
 
@@ -24,5 +29,14 @@ router.get('/get-user-info/:userId', getUserInfoByUserId);
 router.get('/get-account-id/:userId', getAccountByUserId);
 router.get('/get-comments/:id', getUserComments);
 router.get('/get-accounts', getAllAccounts);
+router.get('/has-admin-notification/:userId', hasRoleChangeNotification);
+router.get(
+  '/get-role-change-notifications/:userId',
+  getRoleChangeNotificationByUserId
+);
+router.post(
+  '/mark-role-change-notification-as-read',
+  markRoleChangeNotificationAsRead
+);
 
 export default router;
