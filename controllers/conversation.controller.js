@@ -3,11 +3,34 @@ import Message from '../models/message.model.js';
 
 export const createConversation = async (req, res, next) => {
   try {
-    const conversation = new Conversation({
-      members: [req.body.senderId, req.body.receiverId],
+    const { senderId, receiverId } = req.body;
+
+    let conversation = await Conversation.findOne({
+      members: { $all: [senderId, receiverId] },
     });
 
-    await conversation.save();
+    if (conversation) {
+      const bothUsersDeleted =
+        conversation.deletedBy.includes(senderId) &&
+        conversation.deletedBy.includes(receiverId);
+
+      if (bothUsersDeleted) {
+        await Conversation.findByIdAndDelete(conversation._id);
+        await Message.deleteMany({ conversation: conversation._id });
+
+        conversation = new Conversation({ members: [senderId, receiverId] });
+        await conversation.save();
+      } else {
+        if (conversation.deletedBy.includes(senderId)) {
+          await Conversation.findByIdAndUpdate(conversation._id, {
+            $pull: { deletedBy: senderId },
+          });
+        }
+      }
+    } else {
+      conversation = new Conversation({ members: [senderId, receiverId] });
+      await conversation.save();
+    }
 
     res.status(201).json(conversation);
   } catch (error) {
@@ -22,6 +45,9 @@ export const getConversations = async (req, res, next) => {
     const conversations = await Conversation.find({
       members: {
         $in: [userId],
+      },
+      deletedBy: {
+        $ne: userId,
       },
     });
 
@@ -55,6 +81,9 @@ export const getConversationIncludesTwoUsers = async (req, res, next) => {
     const conversation = await Conversation.findOne({
       members: {
         $all: [firstUserId, secondUserId],
+      },
+      deletedBy: {
+        $ne: firstUserId,
       },
     });
 
@@ -117,11 +146,16 @@ export const markConversationAsRead = async (req, res, next) => {
 
 export const deleteConversation = async (req, res, next) => {
   try {
-    await Conversation.findByIdAndDelete(req.params.conversationId);
+    const { conversationId } = req.params;
+    const userId = req.body.userId;
 
-    await Message.deleteMany({ conversation: req.params.conversationId });
+    await Conversation.findByIdAndUpdate(conversationId, {
+      $addToSet: { deletedBy: userId },
+    });
 
-    res.status(204).json('Conversation has been deleted');
+    res
+      .status(204)
+      .json('Conversation has been marked as deleted for the user');
   } catch (error) {
     next(error);
   }
