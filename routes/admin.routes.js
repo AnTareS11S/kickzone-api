@@ -191,7 +191,7 @@ router.get('/training/get/:id', getTrainingById);
 router.post('/participants/:id/add', customUpload, addPlayerToTraining);
 router.post('/training/:id/add', customUpload, addTraining);
 router.post('/training/edit/:id', customUpload, editTraining);
-router.post('/training/attendace/:id', addOrRemoveAttendace);
+router.post('/training/attendance/:id', customUpload, addOrRemoveAttendace);
 router.delete('/training/delete/:id', deleteTraining);
 router.delete('/participants/delete/:id', removePlayerFromTraining);
 // Training Type
