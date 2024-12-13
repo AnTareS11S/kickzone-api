@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import Notification from '../models/notifications.model.js';
 
 export const updateNotificationCount = async (
