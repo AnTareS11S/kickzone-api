@@ -67,6 +67,7 @@ const io = new Server(httpServer, {
 
 const connections = {};
 let users = [];
+let teamTrainingNotifications = new Map();
 
 // Socket.IO State
 let userUnreadMessagesCount = new Map();
@@ -119,7 +120,6 @@ io.on('connection', (socket) => {
         unreadConversations: [],
       };
     }
-    socket.emit('getUnreadCount', unreadMessageCount);
   });
 
   socket.on(
@@ -249,7 +249,7 @@ io.on('connection', (socket) => {
   socket.on('updateUnreadMessageCount', ({ userId, count }) => {
     const user = getUser(userId);
     if (user) {
-      io.to(user.socketId).emit('getUnreadCountt', count);
+      io.to(user.socketId).emit('getUnreadCount', count);
     }
   });
 
@@ -275,6 +275,56 @@ io.on('connection', (socket) => {
     console.log('User disconnected:', socket.id);
     removeUser(socket.id);
     io.emit('getUsers', users);
+  });
+
+  socket.on('teamTrainingNotification', ({ teamId }) => {
+    if (!teamTrainingNotifications.has(teamId)) {
+      teamTrainingNotifications.set(teamId, {
+        readBy: new Set(),
+      });
+    }
+
+    io.emit('newTeamTrainingNotification', { teamId });
+  });
+
+  socket.on(
+    'markTeamTrainingNotificationRead',
+    ({ userId, teamId, notificationId }) => {
+      const teamNotification = teamTrainingNotifications.get(teamId);
+
+      if (
+        teamNotification &&
+        teamNotification.notificationId === notificationId
+      ) {
+        teamNotification.readBy.add(userId);
+
+        socket.emit(
+          'teamTrainingNotificationMarkedRead',
+          teamNotification?.readBy?.size
+        );
+      }
+    }
+  );
+
+  socket.on('getTeamTrainingNotifications', ({ teamId, userId }) => {
+    const teamNotification = teamTrainingNotifications.get(teamId);
+
+    console.log(teamId, userId);
+
+    console.log(teamNotification);
+
+    if (teamNotification) {
+      const isRead = teamNotification.readBy.has(userId);
+
+      if (!isRead) {
+        teamNotification.readBy.add(userId);
+      }
+
+      socket.emit(
+        'unreadTeamTrainingNotification',
+        teamNotification?.readBy?.size
+      );
+    }
   });
 });
 
