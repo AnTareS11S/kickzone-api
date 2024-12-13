@@ -5,6 +5,7 @@ import Season from '../models/season.model.js';
 import Admin from '../models/admin.model.js';
 import sharp from 'sharp';
 import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
+import RoleChangeNotification from '../models/roleChangeNotification.model.js';
 
 export const createAdmin = async (req, res, next) => {
   try {
@@ -96,8 +97,18 @@ export const setRole = async (req, res, next) => {
       return res.status(404).json({ message: 'User not found' });
     }
     user.role = req.body.role;
+    user.isRoleChangeNotficationRead = false;
+
+    const notificationMessage = `Your role has been changed to "${req.body.role}". Please log in again for the changes to take effect.`;
+
+    const roleChangeNotification = new RoleChangeNotification({
+      userId: user._id,
+      role: req.body.role,
+      message: notificationMessage,
+    });
 
     await user.save();
+    await roleChangeNotification.save();
     res.status(200).json({ message: 'Role updated successfully' });
   } catch (error) {
     next(error);
