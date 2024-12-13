@@ -2,10 +2,7 @@ import mongoose from 'mongoose';
 
 const trainingNotificationsSchema = new mongoose.Schema(
   {
-    title: {
-      type: String,
-      required: true,
-    },
+    teamId: {},
     description: {
       type: String,
       required: true,
