@@ -53,6 +53,12 @@ const trainingSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isRead: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Player',
+      },
+    ],
   },
   { timestamps: true }
 );
