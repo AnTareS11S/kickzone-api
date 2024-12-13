@@ -5,6 +5,10 @@ const conversationSchema = new mongoose.Schema(
     members: {
       type: Array,
     },
+    deletedBy: {
+      type: [mongoose.Schema.Types.ObjectId],
+      default: [],
+    },
   },
   { timestamps: true }
 );
