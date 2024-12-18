@@ -16,6 +16,7 @@ import {
   checkIsPlayerFan,
   removePlayerFan,
 } from '../controllers/playerFans.controller.js';
+import { getTrainingNotifications } from '../controllers/training.controller.js';
 
 const router = express.Router();
 
@@ -27,6 +28,10 @@ router.get('/get-wanted-team/:id', getPlayersByWantedTeam);
 router.get('/top-stats/:leagueId', getAllPlayersStatsBySeasonAndLeague);
 router.get('/player-top-stats/:playerId', getAllPlayerStatsByPlayerId);
 router.get('/', searchPlayers);
+router.get(
+  '/trainingNotifications/:teamId/:playerId',
+  getTrainingNotifications
+);
 router.post('/follow/:id', addPlayerFan);
 router.post('/is-fan/:id', checkIsPlayerFan);
 router.post('/unfollow/:id', removePlayerFan);
