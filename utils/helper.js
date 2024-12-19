@@ -1,4 +1,6 @@
 import Notification from '../models/notifications.model.js';
+import Training from '../models/training.model.js';
+import TrainingNotifications from '../models/trainingNotifications.model.js';
 
 export const updateNotificationCount = async (
   receiverId,
@@ -128,6 +130,31 @@ export const updateNotificationCount = async (
     return result;
   } catch (error) {
     console.error('Error updating notification count:', error);
+    throw error;
+  }
+};
+
+export const updateTeamTrainingNotification = async (
+  teamId,
+  userId,
+  trainingId
+) => {
+  try {
+    console.log('teamIddd:', teamId, userId);
+    const result = await TrainingNotifications.findOneAndUpdate(
+      { teamId },
+      { $addToSet: { readBy: userId } },
+      { new: true }
+    );
+
+    await Training.findOneAndUpdate(
+      { _id: trainingId },
+      { $addToSet: { isRead: userId } }
+    );
+
+    return result;
+  } catch (error) {
+    console.error('Error updating team training notification:', error);
     throw error;
   }
 };
