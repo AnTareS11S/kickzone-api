@@ -1,6 +1,7 @@
 import Coach from '../models/coach.model.js';
 import Player from '../models/player.model.js';
 import Training from '../models/training.model.js';
+import TrainingNotifications from '../models/trainingNotifications.model.js';
 import TrainingType from '../models/trainingType.model.js';
 import cron from 'node-cron';
 
@@ -29,6 +30,13 @@ export const addTraining = async (req, res, next) => {
   try {
     const coach = await Coach.findById(req.params.id);
     const training = new Training(req.body);
+
+    const trainingNotification = new TrainingNotifications({
+      teamId: coach?.currentTeam,
+      trainingId: training._id,
+    });
+
+    await trainingNotification.save();
 
     coach?.trainings.push(training._id);
     await coach?.save();
@@ -71,6 +79,9 @@ export const getAllCoachTrainings = async (req, res, next) => {
 export const deleteTraining = async (req, res, next) => {
   try {
     const training = await Training.findByIdAndDelete(req.params.id);
+    await TrainingNotifications.findByIdAndDelete({
+      trainingId: req.params.id,
+    });
 
     const coach = await Coach.findById(training.coachId);
     coach?.trainings.pull(training._id);
@@ -170,6 +181,19 @@ export const addPlayerToTraining = async (req, res, next) => {
     await training?.save();
 
     res.status(200).json(training);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getTrainingNotifications = async (req, res, next) => {
+  try {
+    const notificationsCount = await TrainingNotifications.countDocuments({
+      teamId: req.params.teamId,
+      readBy: { $nin: [req.params.playerId] },
+    });
+
+    res.status(200).json(notificationsCount);
   } catch (error) {
     next(error);
   }
