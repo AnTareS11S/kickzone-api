@@ -78,12 +78,7 @@ import {
   editSponsor,
   getAllSponsors,
 } from '../controllers/sponsor.controller.js';
-import {
-  addFormation,
-  deleteFormation,
-  editFormation,
-  getFormations,
-} from '../controllers/formation.controller.js';
+
 import {
   createTerm,
   deleteTerm,
@@ -174,11 +169,6 @@ router.get('/position', getPositions);
 router.post('/position/add', customUpload, addPosition);
 router.post('/position/edit/:id', customUpload, editPosition);
 router.delete('/position/delete/:id', deletePosition);
-// Formation
-router.get('/formation', getFormations);
-router.post('/formation/add', customUpload, addFormation);
-router.post('/formation/edit/:id', customUpload, editFormation);
-router.delete('/formation/delete/:id', deleteFormation);
 // Player
 router.get('/player', getPlayers);
 router.get('/team-player/:id', getPlayersByCurrentTeam);
