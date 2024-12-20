@@ -79,7 +79,7 @@ export const getAllCoachTrainings = async (req, res, next) => {
 export const deleteTraining = async (req, res, next) => {
   try {
     const training = await Training.findByIdAndDelete(req.params.id);
-    await TrainingNotifications.findByIdAndDelete({
+    await TrainingNotifications.findOneAndDelete({
       trainingId: req.params.id,
     });
 
@@ -193,7 +193,7 @@ export const getTrainingNotifications = async (req, res, next) => {
       readBy: { $nin: [req.params.playerId] },
     });
 
-    res.status(200).json(notificationsCount);
+    res.status(200).json({ unreadCount: notificationsCount });
   } catch (error) {
     next(error);
   }
