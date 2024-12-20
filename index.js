@@ -17,14 +17,17 @@ import countryRoutes from './routes/country.routes.js';
 import seasonRoutes from './routes/season.routes.js';
 import positionRoutes from './routes/position.routes.js';
 import stadiumRoutes from './routes/stadium.routes.js';
-import formationRoutes from './routes/formation.routes.js';
 import conversationRoutes from './routes/conversation.routes.js';
 import messagesRoutes from './routes/messages.routes.js';
 import matchRoutes from './routes/match.routes.js';
 import notificationsRoutes from './routes/notifications.routes.js';
 import cookieParser from 'cookie-parser';
 import { S3Client } from '@aws-sdk/client-s3';
-import { updateNotificationCount } from './utils/helper.js';
+import {
+  updateNotificationCount,
+  updateTeamTrainingNotification,
+} from './utils/helper.js';
+import TrainingNotifications from './models/trainingNotifications.model.js';
 
 dotenv.config();
 
@@ -113,7 +116,7 @@ io.on('connection', (socket) => {
   socket.on('addUser', (userId) => {
     addUser(userId, socket.id);
     io.emit('getUsers', users);
-    const unreadMessageCount = userUnreadMessagesCount.get(userId) || 0;
+
     if (!connections[userId]) {
       connections[userId] = {
         socketId: socket.id,
@@ -249,7 +252,7 @@ io.on('connection', (socket) => {
   socket.on('updateUnreadMessageCount', ({ userId, count }) => {
     const user = getUser(userId);
     if (user) {
-      io.to(user.socketId).emit('getUnreadCount', count);
+      io.to(user?.socketId).emit('getUnreadCount', count);
     }
   });
 
@@ -271,60 +274,60 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-    removeUser(socket.id);
-    io.emit('getUsers', users);
-  });
-
-  socket.on('teamTrainingNotification', ({ teamId }) => {
-    if (!teamTrainingNotifications.has(teamId)) {
+  socket.on('initializeTeamTrainingNotifications', async ({ teamId }) => {
+    try {
       teamTrainingNotifications.set(teamId, {
+        unreadCount:
+          teamTrainingNotifications.get(teamId)?.unreadCount + 1 || 1,
         readBy: new Set(),
       });
-    }
 
-    io.emit('newTeamTrainingNotification', { teamId });
+      io.emit('teamTrainingNotificationStatus', {
+        unreadCount: teamTrainingNotifications.get(teamId).unreadCount,
+      });
+    } catch (error) {
+      console.error('Error sending team training notification', error);
+    }
   });
 
   socket.on(
     'markTeamTrainingNotificationRead',
-    ({ userId, teamId, notificationId }) => {
-      const teamNotification = teamTrainingNotifications.get(teamId);
-
-      if (
-        teamNotification &&
-        teamNotification.notificationId === notificationId
-      ) {
-        teamNotification.readBy.add(userId);
-
-        socket.emit(
-          'teamTrainingNotificationMarkedRead',
-          teamNotification?.readBy?.size
+    async ({ teamId, userId, trainingId }) => {
+      try {
+        // Update in database
+        const updatedNotification = await updateTeamTrainingNotification(
+          teamId,
+          userId,
+          trainingId
         );
+        if (updatedNotification) {
+          // Update in-memory store
+          const currentNotification = teamTrainingNotifications.get(teamId);
+          if (currentNotification) {
+            currentNotification?.readBy?.add(userId);
+            currentNotification.unreadCount = Math.max(
+              0,
+              currentNotification.unreadCount - 1
+            );
+          }
+
+          // Emit updated unread count
+          if (updatedNotification?.readBy.includes(userId)) {
+            socket.emit('unreadTeamTrainingNotification', {
+              unreadCount: currentNotification?.unreadCount,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error marking notification as read:', error);
       }
     }
   );
 
-  socket.on('getTeamTrainingNotifications', ({ teamId, userId }) => {
-    const teamNotification = teamTrainingNotifications.get(teamId);
-
-    console.log(teamId, userId);
-
-    console.log(teamNotification);
-
-    if (teamNotification) {
-      const isRead = teamNotification.readBy.has(userId);
-
-      if (!isRead) {
-        teamNotification.readBy.add(userId);
-      }
-
-      socket.emit(
-        'unreadTeamTrainingNotification',
-        teamNotification?.readBy?.size
-      );
-    }
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+    removeUser(socket.id);
+    io.emit('getUsers', users);
   });
 });
 
@@ -338,7 +341,6 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/referee', refereeRoutes);
 app.use('/api/country', countryRoutes);
 app.use('/api/position', positionRoutes);
-app.use('/api/formation', formationRoutes);
 app.use('/api/stadium', stadiumRoutes);
 app.use('/api/season', seasonRoutes);
 app.use('/api/league', leagueRoutes);
