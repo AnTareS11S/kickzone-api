@@ -142,7 +142,7 @@ export const updateTeamTrainingNotification = async (
   try {
     console.log('teamIddd:', teamId, userId);
     const result = await TrainingNotifications.findOneAndUpdate(
-      { teamId },
+      { teamId, trainingId },
       { $addToSet: { readBy: userId } },
       { new: true }
     );
