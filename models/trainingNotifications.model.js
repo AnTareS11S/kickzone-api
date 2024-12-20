@@ -2,15 +2,20 @@ import mongoose from 'mongoose';
 
 const trainingNotificationsSchema = new mongoose.Schema(
   {
-    teamId: {},
-    description: {
-      type: String,
-      required: true,
+    teamId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Team',
     },
-    isRead: {
-      type: Boolean,
-      default: false,
+    trainingId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Training',
     },
+    readBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Player',
+      },
+    ],
   },
   { timestamps: true }
 );
