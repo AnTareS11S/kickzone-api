@@ -45,6 +45,10 @@ const trainingSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Coach',
     },
+    teamId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Team',
+    },
     isCompleted: {
       type: Boolean,
       default: false,
