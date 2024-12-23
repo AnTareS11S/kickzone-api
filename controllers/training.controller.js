@@ -41,6 +41,7 @@ export const addTraining = async (req, res, next) => {
     coach?.trainings.push(training._id);
     await coach?.save();
 
+    training.teamId = coach?.currentTeam;
     training.coachId = coach?._id;
     await training.save();
     res.status(201).json(training);
