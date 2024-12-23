@@ -324,6 +324,31 @@ io.on('connection', (socket) => {
     }
   );
 
+  socket.on('removeTeamTraining', ({ teamId }) => {
+    try {
+      const currentNotification = teamTrainingNotifications.get(teamId);
+
+      if (currentNotification) {
+        currentNotification.unreadCount = Math.max(
+          0,
+          currentNotification.unreadCount - 1
+        );
+
+        if (currentNotification.unreadCount === 0) {
+          teamTrainingNotifications.delete(teamId);
+        } else {
+          teamTrainingNotifications.set(teamId, currentNotification);
+        }
+
+        io.emit('teamTrainingNotificationStatusAfterDeletion', {
+          unreadCount: currentNotification?.unreadCount || 0,
+        });
+      }
+    } catch (error) {
+      console.error('Error removing team training notification:', error);
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
     removeUser(socket.id);
