@@ -154,6 +154,7 @@ export const getCoachById = async (req, res, next) => {
       nationality: nationalityName[0].name,
       teams: teams.map((team) => team.name + ':' + team._id),
       currentTeam: currentTeam?.name,
+      currentTeamId: currentTeam?._id,
     });
   } catch (error) {
     next(error);
