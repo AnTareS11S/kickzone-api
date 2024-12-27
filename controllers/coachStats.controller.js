@@ -64,7 +64,7 @@ export const getCoachStatsByTeamId = async (req, res, next) => {
 
     await coachStats.save();
 
-    res.status(200).json({ coachStats });
+    res.status(200).json(coachStats);
   } catch (error) {
     next(error);
   }
