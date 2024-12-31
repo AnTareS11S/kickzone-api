@@ -35,10 +35,6 @@ const teamEquipmentSchema = new mongoose.Schema(
       minlength: 2,
       maxlength: 30,
     },
-    lastChecked: {
-      type: Date,
-      required: true,
-    },
   },
   { timestamps: true }
 );
