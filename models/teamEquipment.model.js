@@ -24,16 +24,14 @@ const teamEquipmentSchema = new mongoose.Schema(
     condition: {
       type: String,
       required: true,
-      trim: true,
-      minlength: 2,
-      maxlength: 30,
+      enum: ['Good', 'Fair', 'Poor'],
+      default: 'Good',
     },
     status: {
       type: String,
+      enum: ['Available', 'In Use', 'Needs Replacement'],
       required: true,
-      trim: true,
-      minlength: 2,
-      maxlength: 30,
+      default: 'Available',
     },
   },
   { timestamps: true }
