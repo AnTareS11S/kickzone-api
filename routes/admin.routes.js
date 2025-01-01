@@ -115,6 +115,12 @@ import {
   getContact,
   getOneContact,
 } from '../controllers/contact.controller.js';
+import {
+  addTeamEquipment,
+  deleteTeamEquipment,
+  editTeamEquipment,
+  getTeamEquipment,
+} from '../controllers/teamEquipment.controller.js';
 
 const customUpload = (req, res, next) => {
   if (
@@ -190,6 +196,11 @@ router.get('/training-type/:id', getAllCoachTrainingTypes);
 router.post('/training-type/:id/add', customUpload, addTrainingType);
 router.post('/training-type/edit/:id', customUpload, editTrainingType);
 router.delete('/training-type/delete/:id', deleteTrainingType);
+// Team Equipment
+router.get('/team-equipment/:teamId', getTeamEquipment);
+router.post('/team-equipment/:teamId/add', customUpload, addTeamEquipment);
+router.post('/team-equipment/edit/:id', customUpload, editTeamEquipment);
+router.delete('/team-equipment/delete/:id', deleteTeamEquipment);
 // Season
 router.get('/season', getSeasons);
 router.post('/season/add', customUpload, addSeason);
