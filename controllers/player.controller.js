@@ -154,7 +154,10 @@ export const getPlayers = async (req, res, next) => {
 
 export const getPlayerByUserId = async (req, res, next) => {
   try {
-    const player = await Player.findOne({ user: req.params.id });
+    const player = await Player.findOne({ user: req.params.id }).populate(
+      'currentTeam',
+      'name'
+    );
     if (!player) {
       return res.status(404).json({ success: false, message: 'Not found!' });
     }
