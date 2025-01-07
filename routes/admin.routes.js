@@ -1,6 +1,6 @@
 import express from 'express';
 import {
-  createAdmin,
+  addAdmin,
   deleteLeague,
   deleteTeam,
   deleteUser,
@@ -80,19 +80,19 @@ import {
 } from '../controllers/sponsor.controller.js';
 
 import {
-  createTerm,
+  addTerm,
   deleteTerm,
   editTerm,
   getTerms,
 } from '../controllers/terms.controller.js';
 import {
-  createPrivacy,
+  addPrivacy,
   deletePrivacy,
   editPrivacy,
   getPrivacies,
 } from '../controllers/privacy.controller.js';
 import {
-  createAboutUs,
+  addAboutUs,
   deleteAboutUs,
   editAboutUs,
   getAboutUs,
@@ -103,13 +103,13 @@ import {
   getTodayMatches,
 } from '../controllers/match.controller.js';
 import {
-  createFaq,
+  addFaq,
   deleteFaq,
   editFaq,
   getFaqs,
 } from '../controllers/faq.controller.js';
 import {
-  createContact,
+  addContact,
   deleteContact,
   editContact,
   getContact,
@@ -121,6 +121,10 @@ import {
   editTeamEquipment,
   getTeamEquipment,
 } from '../controllers/teamEquipment.controller.js';
+import {
+  addTeamForumCategory,
+  getTeamForumCategories,
+} from '../controllers/teamForumCategory.controller.js';
 
 const customUpload = (req, res, next) => {
   if (
@@ -136,7 +140,7 @@ const router = express.Router();
 
 // Admin
 router.get('/get/:adminId', getAdminByUserId);
-router.post('/create', upload.single('photo'), createAdmin);
+router.post('/add', upload.single('photo'), addAdmin);
 
 // User
 router.get('/user', getAllUsers);
@@ -216,18 +220,18 @@ router.post('/sponsor/edit/:id', customUpload, editSponsor);
 router.delete('/sponsor/delete/:id', deleteSponsor);
 // Terms
 router.get('/terms', getTerms);
-router.post('/terms/add', customUpload, createTerm);
+router.post('/terms/add', customUpload, addTerm);
 router.post('/terms/edit/:id', customUpload, editTerm);
 router.delete('/terms/delete/:id', deleteTerm);
 // Privacy
 router.get('/privacy', getPrivacies);
-router.post('/privacy/add', customUpload, createPrivacy);
+router.post('/privacy/add', customUpload, addPrivacy);
 router.post('/privacy/edit/:id', customUpload, editPrivacy);
 router.delete('/privacy/delete/:id', deletePrivacy);
 // About Us
 router.get('/about', getAboutUs);
 router.get('/aboutOne', getOneAboutUs);
-router.post('/about/add', upload.single('logo'), createAboutUs);
+router.post('/about/add', upload.single('logo'), addAboutUs);
 router.post('/about/edit/:id', upload.single('logo'), editAboutUs);
 router.delete('/about/delete/:id', deleteAboutUs);
 // Explore
@@ -235,13 +239,18 @@ router.get('/today-matches', getTodayMatches);
 router.get('/recent-results', getRecentMatchResults);
 // FAQ
 router.get('/faq', getFaqs);
-router.post('/faq/add', customUpload, createFaq);
+router.post('/faq/add', customUpload, addFaq);
 router.post('/faq/edit/:id', customUpload, editFaq);
 router.delete('/faq/delete/:id', deleteFaq);
+// Team Forum Category
+router.get('/team-forum', getTeamForumCategories);
+router.post('/team-forum/add', customUpload, addTeamForumCategory);
+router.post('/team-forum/edit/:id', customUpload, editSeason);
+router.delete('/team-forum/delete/:id', deleteSeason);
 // Contact
 router.get('/contact', getContact);
 router.get('/contactOne', getOneContact);
-router.post('/contact/add', customUpload, createContact);
+router.post('/contact/add', customUpload, addContact);
 router.post('/contact/edit/:id', customUpload, editContact);
 router.delete('/contact/delete/:id', deleteContact);
 
