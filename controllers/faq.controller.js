@@ -1,6 +1,6 @@
 import Faq from '../models/faq.model.js';
 
-export const createFaq = async (req, res, next) => {
+export const addFaq = async (req, res, next) => {
   try {
     const faq = new Faq(req.body);
     await faq.save();

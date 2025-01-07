@@ -2,7 +2,7 @@ import sharp from 'sharp';
 import AboutUs from '../models/aboutUs.model.js';
 import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
 
-export const createAboutUs = async (req, res, next) => {
+export const addAboutUs = async (req, res, next) => {
   try {
     const buffer = await sharp(req.file.buffer)
       .resize({ fit: 'cover' })

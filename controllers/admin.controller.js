@@ -7,7 +7,7 @@ import sharp from 'sharp';
 import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
 import RoleChangeNotification from '../models/roleChangeNotification.model.js';
 
-export const createAdmin = async (req, res, next) => {
+export const addAdmin = async (req, res, next) => {
   try {
     if (!req.file || !req.file.buffer) {
       const existedAdmin = await Admin.findOne({ user: req.body.user });

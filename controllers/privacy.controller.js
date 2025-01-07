@@ -1,6 +1,6 @@
 import Privacy from '../models/privacy.model.js';
 
-export const createPrivacy = async (req, res, next) => {
+export const addPrivacy = async (req, res, next) => {
   try {
     const privacy = await Privacy.create(req.body);
 

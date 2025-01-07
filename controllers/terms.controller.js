@@ -1,6 +1,6 @@
 import Term from '../models/terms.model.js';
 
-export const createTerm = async (req, res, next) => {
+export const addTerm = async (req, res, next) => {
   try {
     const term = await Term.create(req.body);
 
