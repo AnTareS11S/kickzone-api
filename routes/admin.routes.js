@@ -123,6 +123,8 @@ import {
 } from '../controllers/teamEquipment.controller.js';
 import {
   addTeamForumCategory,
+  deleteTeamForumCategory,
+  editTeamForumCategory,
   getTeamForumCategories,
 } from '../controllers/teamForumCategory.controller.js';
 
@@ -245,8 +247,8 @@ router.delete('/faq/delete/:id', deleteFaq);
 // Team Forum Category
 router.get('/team-forum', getTeamForumCategories);
 router.post('/team-forum/add', customUpload, addTeamForumCategory);
-router.post('/team-forum/edit/:id', customUpload, editSeason);
-router.delete('/team-forum/delete/:id', deleteSeason);
+router.post('/team-forum/edit/:id', customUpload, editTeamForumCategory);
+router.delete('/team-forum/delete/:id', deleteTeamForumCategory);
 // Contact
 router.get('/contact', getContact);
 router.get('/contactOne', getOneContact);
