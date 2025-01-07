@@ -14,7 +14,7 @@ const threadCategorySchema = new mongoose.Schema(
       required: true,
       trim: true,
       minlength: 2,
-      maxlength: 100,
+      maxlength: 200,
     },
     order: {
       type: Number,
