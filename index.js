@@ -20,6 +20,7 @@ import stadiumRoutes from './routes/stadium.routes.js';
 import conversationRoutes from './routes/conversation.routes.js';
 import messagesRoutes from './routes/messages.routes.js';
 import matchRoutes from './routes/match.routes.js';
+import forumRoutes from './routes/forum.routes.js';
 import notificationsRoutes from './routes/notifications.routes.js';
 import cookieParser from 'cookie-parser';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -376,6 +377,7 @@ app.use('/api/conversations', conversationRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/post', postRoutes);
+app.use('/api/forum', forumRoutes);
 app.use('/api/team', teamRoutes);
 app.use('/api/auth', authRoutes);
 
