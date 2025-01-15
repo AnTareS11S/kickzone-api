@@ -245,10 +245,14 @@ router.post('/faq/add', customUpload, addFaq);
 router.post('/faq/edit/:id', customUpload, editFaq);
 router.delete('/faq/delete/:id', deleteFaq);
 // Team Forum Category
-router.get('/team-forum', getTeamForumCategories);
-router.post('/team-forum/add', customUpload, addTeamForumCategory);
-router.post('/team-forum/edit/:id', customUpload, editTeamForumCategory);
-router.delete('/team-forum/delete/:id', deleteTeamForumCategory);
+router.get('/team-forum-categories', getTeamForumCategories);
+router.post('/team-forum-categories/add', customUpload, addTeamForumCategory);
+router.post(
+  '/team-forum-categories/edit/:id',
+  customUpload,
+  editTeamForumCategory
+);
+router.delete('/team-forum-categories/delete/:id', deleteTeamForumCategory);
 // Contact
 router.get('/contact', getContact);
 router.get('/contactOne', getOneContact);
