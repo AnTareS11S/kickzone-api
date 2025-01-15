@@ -14,10 +14,22 @@ const threadSchema = new mongoose.Schema(
       required: true,
       trim: true,
       minlength: 2,
+      maxlength: 400,
+    },
+    teamId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Team',
     },
     author: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      id: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+      },
+      model: {
+        type: String,
+        required: true,
+        enum: ['Coach', 'Player'],
+      },
     },
     category: {
       type: mongoose.Schema.Types.ObjectId,
@@ -37,6 +49,16 @@ const threadSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    replies: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Reply',
+      },
+    ],
   },
   { timestamps: true }
 );
+
+const Thread = mongoose.model('Thread', threadSchema);
+
+export default Thread;
