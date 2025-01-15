@@ -9,7 +9,7 @@ const roleChangeNotificationSchema = new mongoose.Schema(
     role: {
       type: String,
       required: true,
-      enum: ['player', 'referee', 'coach', 'admin'],
+      enum: ['Player', 'Referee', 'Coach', 'Admin'],
     },
     message: {
       type: String,
