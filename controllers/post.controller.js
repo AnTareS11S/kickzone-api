@@ -115,6 +115,7 @@ export const getPostById = async (req, res, next) => {
       })
       .populate({
         path: 'children',
+        options: { sort: { createdAt: -1 } },
         populate: [
           {
             path: 'author',
@@ -124,6 +125,7 @@ export const getPostById = async (req, res, next) => {
           {
             path: 'children',
             model: Post,
+            options: { sort: { createdAt: -1 } },
             populate: {
               path: 'author',
               model: User,
