@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import Thread from '../models/thread.model.js';
+import ThreadReply from '../models/threadReply.model.js';
 
 export const addNewThread = async (req, res, next) => {
   try {
@@ -63,22 +64,48 @@ export const getThreads = async (req, res, next) => {
 
 export const getThreadById = async (req, res, next) => {
   try {
-    const thread = await Thread.findById(req.params.threadId);
+    const thread = await Thread.findById(req.params.threadId).populate({
+      path: 'replies',
+      options: { sort: { createdAt: -1 } },
+    });
 
-    const AuthorModel = mongoose.model(thread.author.model);
-    const author = await AuthorModel.findOne({ user: thread.author.id });
+    const ThreadAuthorModel = mongoose.model(thread.author.model);
+    const threadAuthor = await ThreadAuthorModel.findOne({
+      user: thread.author.id,
+    });
+
+    const replyAuthorsPromises = thread.replies.map(async (reply) => {
+      const ReplyAuthorModel = mongoose.model(reply.author.model);
+      return ReplyAuthorModel.findOne({ _id: reply.author.id });
+    });
+
+    const replyAuthors = await Promise.all(replyAuthorsPromises);
 
     const populatedThread = {
       ...thread.toObject(),
       likesCount: thread.likes.length,
       repliesCount: thread.replies.length,
-      author: author
+      author: threadAuthor
         ? {
-            id: author._id,
-            name: author.name + ' ' + author.surname,
-            avatar: author.imageUrl,
+            id: threadAuthor._id,
+            name: `${threadAuthor.name} ${threadAuthor.surname}`,
+            avatar: threadAuthor.imageUrl,
           }
         : {},
+      replies: thread.replies.map((reply, index) => {
+        const replyAuthor = replyAuthors[index];
+        return {
+          ...reply.toObject(),
+          likesCount: reply.likes.length,
+          author: replyAuthor
+            ? {
+                id: replyAuthor._id,
+                name: `${replyAuthor.name} ${replyAuthor.surname}`,
+                avatar: replyAuthor.imageUrl,
+              }
+            : {},
+        };
+      }),
     };
 
     res.status(200).json(populatedThread);
@@ -115,24 +142,195 @@ export const handleLikeThread = async (req, res, next) => {
   try {
     const thread = await Thread.findById(req.params.threadId);
 
+    const LinkingUserModel = mongoose.model(req.body.role);
+    const likingUser = await LinkingUserModel.findOne({
+      user: req.body.userId,
+    });
+
     if (!thread) {
       return res
         .status(404)
         .json({ success: false, message: 'Thread not found!' });
     }
 
-    const isLiked = thread.likes.includes(req.body.userId);
+    const isLiked = thread.likes.some(
+      (like) =>
+        like.id.toString() === likingUser._id.toString() &&
+        like.model === req.body.role
+    );
 
     if (isLiked) {
       thread.likes = thread.likes.filter(
-        (like) => like.toString() !== req.body.userId
+        (like) =>
+          !(
+            like.id.toString() === likingUser._id.toString() &&
+            like.model === req.body.role
+          )
       );
     } else {
-      thread.likes.push(req.body.userId);
+      thread.likes.push({
+        model: req.body.role,
+        id: likingUser._id,
+      });
     }
 
     await thread.save();
     res.status(200).json(thread);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteThread = async (req, res, next) => {
+  try {
+    const thread = await Thread.findById(req.params.threadId);
+
+    const threadRepliesPromises = thread.replies.map(async (reply) => {
+      await ThreadReply.findByIdAndDelete(reply);
+    });
+
+    await Promise.all(threadRepliesPromises);
+
+    if (!thread) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Thread not found!' });
+    }
+
+    await Thread.findByIdAndDelete(req.params.threadId);
+    res.status(200).json({ success: true, message: 'Thread deleted!' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const addCommentToThread = async (req, res, next) => {
+  try {
+    const originalThread = await Thread.findById(req.params.threadId);
+
+    const AuthorModel = mongoose.model(req.body.model);
+    const author = await AuthorModel.findOne({ user: req.body.userId });
+
+    if (!originalThread) {
+      return res.status(404).json({ message: 'Thread not found' });
+    }
+
+    const newComment = new ThreadReply({
+      ...req.body,
+      threadId: req.params.threadId,
+      author: {
+        id: author._id,
+        model: req.body.model,
+      },
+      user: req.body.userId,
+    });
+
+    const savedComment = await newComment.save();
+
+    originalThread.replies.push(savedComment._id);
+
+    await originalThread.save();
+
+    res.status(201).json(savedComment);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const editComment = async (req, res, next) => {
+  try {
+    const existedComment = await ThreadReply.findById(req.params.commentId);
+
+    if (!existedComment) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Comment not found!' });
+    }
+
+    const updatedComment = await ThreadReply.findByIdAndUpdate(
+      { _id: req.params.commentId },
+      { ...req.body },
+      {
+        new: true,
+      }
+    );
+
+    res.status(200).json(updatedComment);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteComment = async (req, res, next) => {
+  try {
+    const comment = await ThreadReply.findById(req.params.commentId);
+
+    if (!comment) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Comment not found!' });
+    }
+
+    const thread = await Thread.findById({ _id: comment.threadId });
+
+    if (!thread) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Thread not found!' });
+    }
+
+    thread.replies = thread.replies.filter(
+      (reply) => reply.toString() !== req.params.commentId
+    );
+
+    await thread.save();
+
+    await ThreadReply.findByIdAndDelete(req.params.commentId);
+    res.status(200).json({ success: true, message: 'Comment deleted!' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const handleLikeComment = async (req, res, next) => {
+  try {
+    const comment = await ThreadReply.findById(req.params.commentId);
+
+    const LinkingUserModel = mongoose.model(req.body.role);
+    const likingUser = await LinkingUserModel.findOne({
+      user: req.body.userId,
+    });
+
+    if (!comment) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Comment not found!' });
+    }
+
+    const isLiked = comment.likes.some(
+      (like) =>
+        like.id.toString() === likingUser._id.toString() &&
+        like.model === req.body.role
+    );
+
+    if (isLiked) {
+      comment.likes = comment.likes.filter(
+        (like) =>
+          !(
+            like.id.toString() === likingUser._id.toString() &&
+            like.model === req.body.role
+          )
+      );
+    } else {
+      comment.likes.push({
+        model: req.body.role,
+        id: likingUser._id,
+      });
+    }
+
+    await comment.save();
+
+    res.status(200).json(comment);
   } catch (error) {
     next(error);
   }
