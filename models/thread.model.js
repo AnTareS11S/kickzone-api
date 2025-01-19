@@ -31,6 +31,11 @@ const threadSchema = new mongoose.Schema(
         enum: ['Coach', 'Player'],
       },
     },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ThreadCategory',
@@ -45,14 +50,21 @@ const threadSchema = new mongoose.Schema(
     },
     likes: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        id: {
+          type: mongoose.Schema.Types.ObjectId,
+          required: true,
+        },
+        model: {
+          type: String,
+          required: true,
+          enum: ['Coach', 'Player'],
+        },
       },
     ],
     replies: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Reply',
+        ref: 'ThreadReply',
       },
     ],
   },
