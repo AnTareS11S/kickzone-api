@@ -255,11 +255,7 @@ export const getPlayersByWantedTeam = async (req, res, next) => {
     }
     const players = await Player.find({ wantedTeam: req.params.id });
 
-    const playersNames = players.map(
-      (player) => player.name + ' ' + player.surname + ':' + player._id
-    );
-
-    res.status(200).json(playersNames);
+    res.status(200).json(players);
   } catch (error) {
     next(error);
   }
