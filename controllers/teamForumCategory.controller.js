@@ -12,7 +12,7 @@ export const addTeamForumCategory = async (req, res, next) => {
 
 export const getTeamForumCategories = async (req, res, next) => {
   try {
-    const teamForumCategories = await ThreadCategory.find();
+    const teamForumCategories = await ThreadCategory.find().sort({ order: 1 });
 
     if (!teamForumCategories) {
       return res
