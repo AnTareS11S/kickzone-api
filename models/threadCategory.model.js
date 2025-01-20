@@ -16,6 +16,10 @@ const threadCategorySchema = new mongoose.Schema(
       minlength: 2,
       maxlength: 200,
     },
+    count: {
+      type: Number,
+      default: 0,
+    },
     order: {
       type: Number,
       default: 0,
