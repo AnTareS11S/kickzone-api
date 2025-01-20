@@ -1,11 +1,20 @@
 import mongoose from 'mongoose';
 import Thread from '../models/thread.model.js';
 import ThreadReply from '../models/threadReply.model.js';
+import ThreadCategory from '../models/threadCategory.model.js';
 
 export const addNewThread = async (req, res, next) => {
   try {
     const AuthorModel = mongoose.model(req.body.authorModel);
     const author = await AuthorModel.findOne({ user: req.body.authorId });
+
+    const threadCategory = await ThreadCategory.findOne({
+      _id: req.body.category,
+    });
+
+    threadCategory.count += 1;
+
+    await threadCategory.save();
 
     const newThread = new Thread({
       ...req.body,
@@ -185,16 +194,22 @@ export const deleteThread = async (req, res, next) => {
   try {
     const thread = await Thread.findById(req.params.threadId);
 
+    if (!thread) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Thread not found!' });
+    }
+
     const threadRepliesPromises = thread.replies.map(async (reply) => {
       await ThreadReply.findByIdAndDelete(reply);
     });
 
     await Promise.all(threadRepliesPromises);
 
-    if (!thread) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Thread not found!' });
+    const threadCategory = await ThreadCategory.findById(thread.category);
+    if (threadCategory && threadCategory.count > 0) {
+      threadCategory.count -= 1;
+      await threadCategory.save();
     }
 
     await Thread.findByIdAndDelete(req.params.threadId);
