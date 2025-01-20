@@ -55,33 +55,42 @@ export const getRoundByLeagueId = async (req, res, next) => {
             ...rest
           }) => ({
             matchId: _id,
-            homeTeam: homeTeam.name + ':' + homeTeam._id,
-            awayTeam: awayTeam.name + ':' + awayTeam._id,
+            homeTeam: {
+              id: homeTeam._id,
+              name: homeTeam.name,
+            },
+            awayTeam: {
+              id: awayTeam._id,
+              name: awayTeam.name,
+            },
             mainReferee:
               mainReferee !== null
-                ? mainReferee.name +
-                  ' ' +
-                  mainReferee.surname +
-                  ':' +
-                  mainReferee._id
+                ? {
+                    id: mainReferee._id,
+                    name: mainReferee.name + ' ' + mainReferee.surname,
+                  }
                 : null,
 
             firstAssistantReferee:
               firstAssistantReferee !== null
-                ? firstAssistantReferee.name +
-                  ' ' +
-                  firstAssistantReferee.surname +
-                  ':' +
-                  firstAssistantReferee._id
+                ? {
+                    id: firstAssistantReferee._id,
+                    name:
+                      firstAssistantReferee.name +
+                      ' ' +
+                      firstAssistantReferee.surname,
+                  }
                 : null,
 
             secondAssistantReferee:
               secondAssistantReferee !== null
-                ? secondAssistantReferee?.name +
-                  ' ' +
-                  secondAssistantReferee?.surname +
-                  ':' +
-                  secondAssistantReferee?._id
+                ? {
+                    id: secondAssistantReferee._id,
+                    name:
+                      secondAssistantReferee.name +
+                      ' ' +
+                      secondAssistantReferee.surname,
+                  }
                 : null,
             startDate,
             ...rest,
