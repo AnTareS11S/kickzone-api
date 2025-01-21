@@ -7,12 +7,24 @@ export const addNewThread = async (req, res, next) => {
   try {
     const AuthorModel = mongoose.model(req.body.authorModel);
     const author = await AuthorModel.findOne({ user: req.body.authorId });
+    const teamId = author?.currentTeam;
 
     const threadCategory = await ThreadCategory.findOne({
       _id: req.body.category,
     });
 
-    threadCategory.count += 1;
+    const teamCountIndex = threadCategory.teamCounts.findIndex(
+      (tc) => tc.teamId.toString() === teamId.toString()
+    );
+
+    if (teamCountIndex === -1) {
+      threadCategory.teamCounts.push({
+        teamId: teamId,
+        count: 1,
+      });
+    } else {
+      threadCategory.teamCounts[teamCountIndex].count += 1;
+    }
 
     await threadCategory.save();
 
@@ -35,7 +47,12 @@ export const addNewThread = async (req, res, next) => {
 
 export const getThreads = async (req, res, next) => {
   try {
-    const threads = await Thread.find().sort({ createdAt: -1 });
+    const AuthorModel = mongoose.model(req.params.model);
+    const author = await AuthorModel.findOne({ user: req.params.userId });
+
+    const threads = await Thread.find({ teamId: author?.currentTeam }).sort({
+      createdAt: -1,
+    });
 
     const populatedThreads = await Promise.all(
       threads.map(async (thread) => {
@@ -207,9 +224,18 @@ export const deleteThread = async (req, res, next) => {
     await Promise.all(threadRepliesPromises);
 
     const threadCategory = await ThreadCategory.findById(thread.category);
-    if (threadCategory && threadCategory.count > 0) {
-      threadCategory.count -= 1;
-      await threadCategory.save();
+    if (threadCategory) {
+      const teamCountIndex = threadCategory.teamCounts.findIndex(
+        (tc) => tc.teamId.toString() === thread.teamId.toString()
+      );
+
+      if (
+        teamCountIndex !== -1 &&
+        threadCategory.teamCounts[teamCountIndex].count > 0
+      ) {
+        threadCategory.teamCounts[teamCountIndex].count -= 1;
+        await threadCategory.save();
+      }
     }
 
     await Thread.findByIdAndDelete(req.params.threadId);
