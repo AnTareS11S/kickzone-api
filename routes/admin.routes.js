@@ -126,6 +126,7 @@ import {
   deleteTeamForumCategory,
   editTeamForumCategory,
   getTeamForumCategories,
+  getTeamForumCategoriesToSelect,
 } from '../controllers/teamForumCategory.controller.js';
 
 const customUpload = (req, res, next) => {
@@ -245,7 +246,8 @@ router.post('/faq/add', customUpload, addFaq);
 router.post('/faq/edit/:id', customUpload, editFaq);
 router.delete('/faq/delete/:id', deleteFaq);
 // Team Forum Category
-router.get('/team-forum-categories', getTeamForumCategories);
+router.get('/team-forum-categories', getTeamForumCategoriesToSelect);
+router.get('/team-forum-categories/:userId/:model', getTeamForumCategories);
 router.post('/team-forum-categories/add', customUpload, addTeamForumCategory);
 router.post(
   '/team-forum-categories/edit/:id',
