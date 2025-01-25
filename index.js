@@ -72,6 +72,7 @@ const io = new Server(httpServer, {
 const connections = {};
 let users = [];
 let teamTrainingNotifications = new Map();
+let teamForumNotifications = new Map();
 
 // Socket.IO State
 let userUnreadMessagesCount = new Map();
@@ -347,6 +348,24 @@ io.on('connection', (socket) => {
       }
     } catch (error) {
       console.error('Error removing team training notification:', error);
+    }
+  });
+
+  socket.on('initializeTeamForumNotifications', async ({ teamId }) => {
+    try {
+      console.log(teamId);
+      teamForumNotifications.set(teamId, {
+        unreadCount: teamForumNotifications.get(teamId)?.unreadCount + 1 || 1,
+        readBy: new Set(),
+      });
+
+      console.log(teamForumNotifications.get(teamId).unreadCount);
+
+      io.emit('teamForumNotificationsStatus', {
+        unreadCount: teamForumNotifications.get(teamId).unreadCount,
+      });
+    } catch (error) {
+      console.error('Error sending team training notification', error);
     }
   });
 
