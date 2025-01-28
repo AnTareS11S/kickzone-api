@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Thread from '../models/thread.model.js';
 import ThreadReply from '../models/threadReply.model.js';
 import ThreadCategory from '../models/threadCategory.model.js';
+import ForumNotification from '../models/forumNotification.model.js';
 
 export const addNewThread = async (req, res, next) => {
   try {
@@ -37,6 +38,15 @@ export const addNewThread = async (req, res, next) => {
         model: req.body.authorModel,
       },
     });
+
+    const forumNotification = new ForumNotification({
+      title: `New thread: ${newThread.title}`,
+      type: 'newThread',
+      teamId: author?.currentTeam,
+      threadId: newThread._id,
+    });
+
+    await forumNotification.save();
 
     await newThread.save();
     res.status(201).json(newThread);
@@ -210,6 +220,9 @@ export const handleLikeThread = async (req, res, next) => {
 export const deleteThread = async (req, res, next) => {
   try {
     const thread = await Thread.findById(req.params.threadId);
+    await ForumNotification.findOneAndDelete({
+      threadId: req.params.threadId,
+    });
 
     if (!thread) {
       return res
@@ -372,6 +385,24 @@ export const handleLikeComment = async (req, res, next) => {
     await comment.save();
 
     res.status(200).json(comment);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getNotifications = async (req, res, next) => {
+  try {
+    const AuthorModel = mongoose.model(req.params.role);
+    const author = await AuthorModel.findOne({ user: req.params.userId });
+    const teamId = author?.currentTeam;
+    const notifications = await ForumNotification.find({
+      teamId,
+      readBy: { $ne: req.params.userId },
+    }).sort({ createdAt: -1 });
+
+    res
+      .status(200)
+      .json({ notifications, unreadCount: notifications?.length, teamId });
   } catch (error) {
     next(error);
   }
