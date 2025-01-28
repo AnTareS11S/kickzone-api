@@ -1,3 +1,4 @@
+import ForumNotification from '../models/forumNotification.model.js';
 import Notification from '../models/notifications.model.js';
 import Training from '../models/training.model.js';
 import TrainingNotifications from '../models/trainingNotifications.model.js';
@@ -140,7 +141,6 @@ export const updateTeamTrainingNotification = async (
   trainingId
 ) => {
   try {
-    console.log('teamIddd:', teamId, userId);
     const result = await TrainingNotifications.findOneAndUpdate(
       { teamId, trainingId },
       { $addToSet: { readBy: userId } },
@@ -155,6 +155,39 @@ export const updateTeamTrainingNotification = async (
     return result;
   } catch (error) {
     console.error('Error updating team training notification:', error);
+    throw error;
+  }
+};
+
+export const updateTeamForumNotification = async (
+  teamId,
+  userId,
+  notificationId
+) => {
+  try {
+    const result = await ForumNotification.findOneAndUpdate(
+      { _id: notificationId, teamId },
+      { $addToSet: { readBy: userId } },
+      { new: true }
+    );
+
+    return result;
+  } catch (error) {
+    console.error('Error updating team forum notification:', error);
+    throw error;
+  }
+};
+
+export const getForumNotification = async (teamId, threadId) => {
+  try {
+    const notification = await ForumNotification.findOne({
+      teamId,
+      threadId,
+    });
+
+    return notification;
+  } catch (error) {
+    console.error('Error getting notification:', error);
     throw error;
   }
 };
