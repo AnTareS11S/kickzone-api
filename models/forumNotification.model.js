@@ -26,15 +26,8 @@ const forumNotificationSchema = new mongoose.Schema(
     },
     readBy: [
       {
-        id: {
-          type: mongoose.Schema.Types.ObjectId,
-          required: true,
-        },
-        model: {
-          type: String,
-          required: true,
-          enum: ['Coach', 'Player'],
-        },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
       },
     ],
   },
