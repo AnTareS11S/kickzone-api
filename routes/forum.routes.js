@@ -6,6 +6,7 @@ import {
   deleteThread,
   editComment,
   editThread,
+  getNotifications,
   getThreadById,
   getThreads,
   handleLikeComment,
@@ -22,6 +23,7 @@ router.post('/comment/edit/:commentId', editComment);
 router.post('/comment/:commentId/like', handleLikeComment);
 router.get('/threads/:userId/:model', getThreads);
 router.get('/thread/:threadId', getThreadById);
+router.get('/notifications/:userId/:role', getNotifications);
 router.delete('/thread/delete/:threadId', deleteThread);
 router.delete('/comment/delete/:commentId', deleteComment);
 
