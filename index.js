@@ -25,7 +25,9 @@ import notificationsRoutes from './routes/notifications.routes.js';
 import cookieParser from 'cookie-parser';
 import { S3Client } from '@aws-sdk/client-s3';
 import {
+  getForumNotification,
   updateNotificationCount,
+  updateTeamForumNotification,
   updateTeamTrainingNotification,
 } from './utils/helper.js';
 import TrainingNotifications from './models/trainingNotifications.model.js';
@@ -351,21 +353,81 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('initializeTeamForumNotifications', async ({ teamId }) => {
+  socket.on(
+    'initializeTeamForumNotifications',
+    async ({ teamId, threadId }) => {
+      try {
+        teamForumNotifications.set(teamId, {
+          unreadCount: teamForumNotifications.get(teamId)?.unreadCount + 1 || 1,
+          readBy: new Set(),
+        });
+
+        const notification = await getForumNotification(teamId, threadId);
+
+        io.emit('teamForumNotificationsStatus', {
+          unreadCount: teamForumNotifications.get(teamId).unreadCount,
+        });
+        io.emit('teamForumNotificationDetails', {
+          notification,
+        });
+      } catch (error) {
+        console.error('Error sending team forum notification', error);
+      }
+    }
+  );
+
+  socket.on(
+    'markTeamForumNotificationRead',
+    async ({ teamId, userId, notificationId }) => {
+      try {
+        // Update in database
+        const updatedNotification = await updateTeamForumNotification(
+          teamId,
+          userId,
+          notificationId
+        );
+        const currentNotification = teamForumNotifications.get(teamId);
+        if (currentNotification) {
+          currentNotification?.readBy?.add(userId);
+          currentNotification.unreadCount = Math.max(
+            0,
+            currentNotification.unreadCount - 1
+          );
+
+          if (updatedNotification?.readBy.includes(userId)) {
+            socket.emit('teamForumNotificationStatusAfterUpdate', {
+              unreadCount: currentNotification?.unreadCount || 0,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error marking notification as read:', error);
+      }
+    }
+  );
+
+  socket.on('removeTeamForum', ({ teamId }) => {
     try {
-      console.log(teamId);
-      teamForumNotifications.set(teamId, {
-        unreadCount: teamForumNotifications.get(teamId)?.unreadCount + 1 || 1,
-        readBy: new Set(),
-      });
+      const currentNotification = teamForumNotifications.get(teamId);
 
-      console.log(teamForumNotifications.get(teamId).unreadCount);
+      if (currentNotification) {
+        currentNotification.unreadCount = Math.max(
+          0,
+          currentNotification.unreadCount - 1
+        );
 
-      io.emit('teamForumNotificationsStatus', {
-        unreadCount: teamForumNotifications.get(teamId).unreadCount,
-      });
+        if (currentNotification.unreadCount === 0) {
+          teamForumNotifications.delete(teamId);
+        } else {
+          teamForumNotifications.set(teamId, currentNotification);
+        }
+
+        io.emit('teamForumNotificationStatusAfterDeletion', {
+          unreadCount: currentNotification?.unreadCount || 0,
+        });
+      }
     } catch (error) {
-      console.error('Error sending team training notification', error);
+      console.error('Error removing team forum notification:', error);
     }
   });
 
