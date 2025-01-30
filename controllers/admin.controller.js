@@ -97,7 +97,7 @@ export const setRole = async (req, res, next) => {
       return res.status(404).json({ message: 'User not found' });
     }
     user.role = req.body.role;
-    user.isRoleChangeNotficationRead = false;
+    user.isRoleChangeNotificationRead = false;
 
     const notificationMessage = `Your role has been changed to "${req.body.role}". Please log in again for the changes to take effect.`;
 

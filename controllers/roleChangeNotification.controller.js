@@ -45,7 +45,7 @@ export const markRoleChangeNotificationAsRead = async (req, res, next) => {
 
     const user = await User.findOneAndUpdate(
       { _id: userId },
-      { $set: { isRoleChangeNotficationRead: true } },
+      { $set: { isRoleChangeNotificationRead: true } },
       { new: true }
     );
 
