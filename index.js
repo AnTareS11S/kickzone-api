@@ -386,17 +386,19 @@ io.on('connection', (socket) => {
           userId,
           notificationId
         );
-        const currentNotification = teamForumNotifications.get(teamId);
-        if (currentNotification) {
-          currentNotification?.readBy?.add(userId);
-          currentNotification.unreadCount = Math.max(
-            0,
-            currentNotification.unreadCount - 1
-          );
+        if (updatedNotification) {
+          const currentNotification = teamForumNotifications.get(teamId);
+          if (currentNotification) {
+            currentNotification?.readBy?.add(userId);
+            currentNotification.unreadCount = Math.max(
+              0,
+              currentNotification.unreadCount - 1
+            );
+          }
 
           if (updatedNotification?.readBy.includes(userId)) {
             socket.emit('teamForumNotificationStatusAfterUpdate', {
-              unreadCount: currentNotification?.unreadCount || 0,
+              unreadCount: currentNotification?.unreadCount,
             });
           }
         }
