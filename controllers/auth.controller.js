@@ -149,8 +149,6 @@ export const completeOnboarding = async (req, res, next) => {
       { new: true }
     );
 
-    console.log(user);
-
     if (!user) {
       return next(errorHandler(404, 'User not found'));
     }
