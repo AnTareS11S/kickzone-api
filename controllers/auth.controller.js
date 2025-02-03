@@ -2,6 +2,7 @@ import User from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { errorHandler } from '../utils/error.js';
+import AdminNotification from '../models/adminNotifications.model.js';
 
 export const signUp = async (req, res, next) => {
   const { username, email, password } = req.body;
@@ -148,6 +149,15 @@ export const completeOnboarding = async (req, res, next) => {
       { $set: { wantedRole, bio, isOnboardingCompleted: true, username } },
       { new: true }
     );
+
+    const notification = new AdminNotification({
+      title: 'New User',
+      content: `${username} has completed onboarding`,
+      userId,
+      type: 'newUser',
+    });
+
+    await notification.save();
 
     if (!user) {
       return next(errorHandler(404, 'User not found'));
