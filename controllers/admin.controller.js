@@ -6,6 +6,7 @@ import Admin from '../models/admin.model.js';
 import sharp from 'sharp';
 import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
 import RoleChangeNotification from '../models/roleChangeNotification.model.js';
+import AdminNotification from '../models/adminNotifications.model.js';
 
 export const addAdmin = async (req, res, next) => {
   try {
@@ -92,18 +93,19 @@ export const getAllUsers = async (req, res, next) => {
 
 export const setRole = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params.userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    user.role = req.body.role;
+    user.role = req.body.newRole;
     user.isRoleChangeNotificationRead = false;
+    user.isRoleSet = true;
 
-    const notificationMessage = `Your role has been changed to "${req.body.role}". Please log in again for the changes to take effect.`;
+    const notificationMessage = `Your role has been changed to "${req.body.newRole}". Please log in again for the changes to take effect.`;
 
     const roleChangeNotification = new RoleChangeNotification({
       userId: user._id,
-      role: req.body.role,
+      role: req.body.newRole,
       message: notificationMessage,
     });
 
@@ -231,6 +233,31 @@ export const getTeamsByIds = async (req, res, next) => {
     const teams = await Team.find({ _id: { $in: teamsIds } });
 
     res.status(200).json(teams);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAdminNotifications = async (req, res, next) => {
+  try {
+    const notifications = await AdminNotification.find();
+
+    res.status(200).json(notifications);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUsersRoleChanges = async (req, res, next) => {
+  try {
+    const users = await User.find({
+      isRoleSet: false,
+      wantedRole: { $ne: '' },
+    })
+      .select('username email createdAt role wantedRole')
+      .select('-password');
+
+    res.status(200).json(users);
   } catch (error) {
     next(error);
   }
