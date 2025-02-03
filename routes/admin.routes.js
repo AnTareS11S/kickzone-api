@@ -5,10 +5,12 @@ import {
   deleteTeam,
   deleteUser,
   getAdminByUserId,
+  getAdminNotifications,
   getAllLeagues,
   getAllUsers,
   getTeamsByIds,
   getTeamsWithoutLeague,
+  getUsersRoleChanges,
   setRole,
 } from '../controllers/admin.controller.js';
 import {
@@ -143,11 +145,13 @@ const router = express.Router();
 
 // Admin
 router.get('/get/:adminId', getAdminByUserId);
+router.get('/role-changes', getUsersRoleChanges);
+router.get('/role-changes-noftif', getAdminNotifications);
+router.post('/update-role/:id', setRole);
 router.post('/add', upload.single('photo'), addAdmin);
 
 // User
 router.get('/user', getAllUsers);
-router.post('/users/:id/role', setRole);
 router.delete('/user/delete/:id', deleteUser);
 // Team
 router.get('/team', getAllTeams);
