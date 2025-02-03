@@ -130,6 +130,11 @@ import {
   getTeamForumCategories,
   getTeamForumCategoriesToSelect,
 } from '../controllers/teamForumCategory.controller.js';
+import {
+  addReport,
+  getReports,
+  updateReport,
+} from '../controllers/report.controller.js';
 
 const customUpload = (req, res, next) => {
   if (
@@ -147,7 +152,10 @@ const router = express.Router();
 router.get('/get/:adminId', getAdminByUserId);
 router.get('/role-changes', getUsersRoleChanges);
 router.get('/role-changes-noftif', getAdminNotifications);
-router.post('/update-role/:id', setRole);
+router.get('/reports', getReports);
+router.post('/add-report', addReport);
+router.post('/report/:reportId', updateReport);
+router.post('/update-role/:userId', setRole);
 router.post('/add', upload.single('photo'), addAdmin);
 
 // User
