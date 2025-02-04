@@ -16,7 +16,8 @@ export const getReports = async (req, res, next) => {
   try {
     const reports = await Report.find()
       .populate('reportedBy', 'username')
-      .populate('reportedUser', 'username');
+      .populate('reportedUser', 'username')
+      .sort({ createdAt: -1 });
 
     res.status(200).json(reports);
   } catch (error) {
