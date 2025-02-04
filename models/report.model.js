@@ -57,6 +57,10 @@ const reportSchema = new mongoose.Schema(
       type: String,
       enum: ['Warning', 'Content_removed', 'User_suspended', 'No_action'],
     },
+    numberOfReports: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
