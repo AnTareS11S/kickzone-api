@@ -151,7 +151,7 @@ const router = express.Router();
 // Admin
 router.get('/get/:adminId', getAdminByUserId);
 router.get('/role-changes', getUsersRoleChanges);
-router.get('/role-changes-noftif', getAdminNotifications);
+router.get('/notifications-count', getAdminNotifications);
 router.get('/reports', getReports);
 router.post('/add-report', addReport);
 router.post('/report/:reportId', updateReport);
