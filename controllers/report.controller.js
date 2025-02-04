@@ -2,11 +2,30 @@ import Report from '../models/report.model.js';
 
 export const addReport = async (req, res, next) => {
   try {
-    const newReport = new Report(req.body);
+    const existingReport = await Report.findOne({
+      reportedBy: req.body.reportedBy,
+      reportedUser: req.body.reportedUser,
+      contentType: req.body.contentType,
+      contentId: req.body.contentId,
+    });
 
-    await newReport.save();
-
-    res.status(201).json(newReport);
+    if (existingReport) {
+      // Jeśli raport istnieje, zwiększamy licznik
+      const updatedReport = await Report.findByIdAndUpdate(
+        existingReport._id,
+        { $inc: { numberOfReports: 1 } },
+        { new: true }
+      );
+      res.status(200).json(updatedReport);
+    } else {
+      // Jeśli nie istnieje, tworzymy nowy z numberOfReports = 1
+      const newReport = new Report({
+        ...req.body,
+        numberOfReports: 1,
+      });
+      await newReport.save();
+      res.status(201).json(newReport);
+    }
   } catch (error) {
     next(error);
   }
