@@ -17,7 +17,7 @@ const adminNotificationSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ['newUser', 'newTeam', 'report'],
+      enum: ['newUser'],
     },
     isRead: {
       type: Boolean,
