@@ -7,6 +7,7 @@ import sharp from 'sharp';
 import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
 import RoleChangeNotification from '../models/roleChangeNotification.model.js';
 import AdminNotification from '../models/adminNotifications.model.js';
+import Report from '../models/report.model.js';
 
 export const addAdmin = async (req, res, next) => {
   try {
@@ -108,6 +109,15 @@ export const setRole = async (req, res, next) => {
       role: req.body.newRole,
       message: notificationMessage,
     });
+
+    const adminNotification = await AdminNotification.findOne({
+      userId: user._id,
+    });
+
+    if (adminNotification) {
+      adminNotification.isRead = true;
+      await adminNotification.save();
+    }
 
     await user.save();
     await roleChangeNotification.save();
@@ -240,9 +250,13 @@ export const getTeamsByIds = async (req, res, next) => {
 
 export const getAdminNotifications = async (req, res, next) => {
   try {
-    const notifications = await AdminNotification.find();
+    const notificationsCount = await AdminNotification.countDocuments({
+      isRead: false,
+    });
 
-    res.status(200).json(notifications);
+    const reportsCount = await Report.countDocuments({ status: 'Pending' });
+
+    res.status(200).json({ notificationsCount, reportsCount });
   } catch (error) {
     next(error);
   }
@@ -255,7 +269,8 @@ export const getUsersRoleChanges = async (req, res, next) => {
       wantedRole: { $ne: '' },
     })
       .select('username email createdAt role wantedRole')
-      .select('-password');
+      .select('-password')
+      .sort({ createdAt: -1 });
 
     res.status(200).json(users);
   } catch (error) {
