@@ -1,3 +1,4 @@
+import ContentDeleted from '../models/contentDeleted.model.js';
 import RoleChangeNotification from '../models/roleChangeNotification.model.js';
 import User from '../models/user.model.js';
 
@@ -27,7 +28,15 @@ export const hasRoleChangeNotification = async (req, res, next) => {
       isRead: false,
     });
 
-    res.status(200).json({ exists: !!notficationExists });
+    const deletedContentNotificationExists = await ContentDeleted.findOne({
+      deletedUser: userId,
+      isRead: false,
+    });
+
+    res.status(200).json({
+      hasRoleChangeNotification: !!notficationExists,
+      hasDeletedContentNotification: !!deletedContentNotificationExists,
+    });
   } catch (error) {
     next(error);
   }
@@ -54,6 +63,23 @@ export const markRoleChangeNotificationAsRead = async (req, res, next) => {
     }
 
     res.status(200).json({ exists: !!notficationExists });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const markContentDeletedNotificationAsRead = async (req, res, next) => {
+  try {
+    const { userId, notificationId } = req.body;
+
+    const deletedContentNotificationExists =
+      await ContentDeleted.findOneAndUpdate(
+        { _id: notificationId, deletedUser: userId, isRead: false },
+        { $set: { isRead: true } },
+        { new: true }
+      );
+
+    res.status(200).json({ exists: !!deletedContentNotificationExists });
   } catch (error) {
     next(error);
   }
