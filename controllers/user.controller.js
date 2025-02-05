@@ -9,6 +9,7 @@ import Referee from '../models/referee.model.js';
 import Coach from '../models/coach.model.js';
 import Conversation from '../models/conversation.model.js';
 import Admin from '../models/admin.model.js';
+import ContentDeleted from '../models/contentDeleted.model.js';
 
 export const addUser = async (req, res, next) => {
   if (req.user.id !== req.params.id) {
@@ -344,6 +345,23 @@ export const getAllAccounts = async (req, res, next) => {
     ];
 
     res.status(200).json(people);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getContentDeletedNotificationByUserId = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    const contentDeletedNotifications = await ContentDeleted.find({
+      deletedUser: userId,
+      isRead: false,
+    })
+      .sort({ createdAt: -1 })
+      .limit(1);
+
+    res.status(200).json(contentDeletedNotifications);
   } catch (error) {
     next(error);
   }
