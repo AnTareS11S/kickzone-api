@@ -77,6 +77,7 @@ export const getAllCoachTrainings = async (req, res, next) => {
     next(error);
   }
 };
+
 export const deleteTraining = async (req, res, next) => {
   try {
     const training = await Training.findByIdAndDelete(req.params.id);
