@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   addAdmin,
+  banUser,
   deleteContent,
   deleteLeague,
   deleteTeam,
@@ -157,6 +158,7 @@ router.get('/reports', getReports);
 router.post('/add-report', addReport);
 router.post('/report/:reportId', updateReport);
 router.post('/update-role/:userId', setRole);
+router.post('/ban-user/:userId', banUser);
 router.post('/add', upload.single('photo'), addAdmin);
 router.delete('/content/delete/:contentId', deleteContent);
 
