@@ -10,6 +10,7 @@ import AdminNotification from '../models/adminNotifications.model.js';
 import Report from '../models/report.model.js';
 import mongoose from 'mongoose';
 import Notification from '../models/notifications.model.js';
+import Ban from '../models/ban.model.js';
 
 export const addAdmin = async (req, res, next) => {
   try {
@@ -376,6 +377,80 @@ export const deleteContent = async (req, res, next) => {
     }
 
     res.status(200).json({ message: 'Content deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const banUser = async (req, res, next) => {
+  try {
+    const { duration, reason, reportId } = req.body;
+
+    const endDate = new Date();
+    if (duration === 'permanent') {
+      endDate.setFullYear(endDate.getFullYear() + 100);
+    } else {
+      endDate.setDate(endDate.getDate() + parseInt(duration));
+    }
+
+    await Ban.updateMany(
+      { user: req.params.userId, status: 'Active' },
+      { status: 'Cancelled' }
+    );
+
+    const ban = new Ban({
+      bannedBy: req.body.bannedBy,
+      user: req.params.userId,
+      reason,
+      description: req.body.description,
+      startDate: new Date(),
+      endDate,
+      reportId,
+    });
+
+    await ban.save();
+
+    await User.findByIdAndUpdate(req.params.userId, {
+      isBanned: true,
+      banExpiresAt: endDate,
+    });
+
+    await Report.findByIdAndUpdate(reportId, {
+      actionTaken: 'User_banned',
+    });
+
+    res.status(200).json({ message: 'User banned successfully', ban });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const checkUserBanStatus = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const activeBan = await Ban.findOne({
+      user: req.params.userId,
+      status: 'Active',
+      endDate: { $gt: new Date() },
+    }).populate('bannedBy', 'username');
+
+    if (!activeBan) {
+      return res.status(200).json({ isBanned: false });
+    }
+
+    res.status(200).json({
+      isBanned: true,
+      banInfo: {
+        reason: activeBan.reason,
+        endDate: activeBan.endDate,
+        bannedBy: activeBan.bannedBy.username,
+        remainingTime: activeBan.endDate - new Date(),
+      },
+    });
   } catch (error) {
     next(error);
   }
