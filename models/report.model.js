@@ -53,6 +53,11 @@ const reportSchema = new mongoose.Schema(
       trim: true,
       maxlength: 1000,
     },
+    reasonInfo: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
+    },
     actionTaken: {
       type: String,
       enum: ['Warning', 'Content_removed', 'User_suspended', 'No_action'],
