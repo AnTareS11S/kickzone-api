@@ -8,6 +8,8 @@ import { deleteImageFromS3, uploadImageToS3 } from '../utils/s3Utils.js';
 import RoleChangeNotification from '../models/roleChangeNotification.model.js';
 import AdminNotification from '../models/adminNotifications.model.js';
 import Report from '../models/report.model.js';
+import mongoose from 'mongoose';
+import Notification from '../models/notifications.model.js';
 
 export const addAdmin = async (req, res, next) => {
   try {
@@ -273,6 +275,92 @@ export const getUsersRoleChanges = async (req, res, next) => {
       .sort({ createdAt: -1 });
 
     res.status(200).json(users);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteContent = async (req, res, next) => {
+  try {
+    const ContentModel = mongoose.model(req.body.contentModel);
+    const contentToDelete = await ContentModel.findById(
+      req.params.contentId
+    ).populate('author');
+
+    if (!contentToDelete) {
+      return res.status(404).json({ message: 'Content not found' });
+    }
+
+    // Handle parent-child relationships
+    if (contentToDelete.parentId) {
+      await ContentModel.findByIdAndUpdate(contentToDelete.parentId, {
+        $pull: { children: contentToDelete._id },
+      });
+    }
+
+    // Get all descendant content (comments/replies)
+    const getAllDescendants = async (contentId) => {
+      const descendants = [];
+      const queue = [contentId];
+
+      while (queue.length > 0) {
+        const currentId = queue.shift();
+        const children = await ContentModel.find({ parentId: currentId });
+
+        for (const child of children) {
+          descendants.push(child);
+          queue.push(child._id);
+        }
+      }
+
+      return descendants;
+    };
+
+    const descendantContent = await getAllDescendants(req.params.contentId);
+
+    // Collect all content IDs to be deleted
+    const contentIdsToDelete = [
+      req.params.contentId,
+      ...descendantContent.map((content) => content._id),
+    ];
+
+    // Collect unique author IDs
+    const uniqueAuthorIds = new Set(
+      [
+        ...descendantContent.map((content) => content.author?._id?.toString()),
+        contentToDelete.author?._id?.toString(),
+      ].filter((id) => id !== undefined)
+    );
+
+    // Delete associated files if they exist
+    if (contentToDelete.postPhoto) {
+      await deleteImageFromS3(contentToDelete.postPhoto);
+    }
+
+    // Delete all descendant content and the main content
+    await ContentModel.deleteMany({ _id: { $in: contentIdsToDelete } });
+
+    // Update user relationships
+    await User.updateMany(
+      { _id: { $in: Array.from(uniqueAuthorIds) } },
+      { $pull: { posts: { $in: contentIdsToDelete } } }
+    );
+
+    // Handle specific content type cleanup
+    if (req.body.contentModel.toLowerCase() === 'post') {
+      // Additional cleanup specific to posts if needed
+      // For example: delete associated likes, notifications, etc.
+      await Promise.all([
+        Notification.deleteMany({
+          notifications: {
+            $elemMatch: { postId: { $in: contentIdsToDelete } },
+          },
+        }),
+        // Add other related models as needed
+      ]);
+    }
+
+    res.status(200).json({ message: 'Content deleted successfully' });
   } catch (error) {
     next(error);
   }
