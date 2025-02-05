@@ -356,8 +356,23 @@ export const deleteContent = async (req, res, next) => {
             $elemMatch: { postId: { $in: contentIdsToDelete } },
           },
         }),
-        // Add other related models as needed
       ]);
+    }
+
+    const report = await Report.findOne({
+      _id: req.body.reportId,
+    });
+
+    if (report) {
+      report.actionTaken = 'Content_removed';
+      report.reasonInfo = req.body.reasonInfo;
+      await report.save();
+
+      if (report.numberOfReports > 1) {
+        await ContentModel.findByIdAndUpdate(req.params.contentId, {
+          isDeleted: true,
+        });
+      }
     }
 
     res.status(200).json({ message: 'Content deleted successfully' });
