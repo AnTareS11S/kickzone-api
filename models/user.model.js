@@ -37,6 +37,8 @@ const userSchema = new mongoose.Schema(
     isRoleSet: { type: Boolean, default: false },
     isProfileFilled: { type: Boolean, default: false },
     isRoleChangeNotificationRead: { type: Boolean, default: false },
+    isBanned: { type: Boolean, default: false },
+    banExpiresAt: { type: Date },
   },
   { timestamps: true }
 );
