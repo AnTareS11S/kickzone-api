@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { errorHandler } from '../utils/error.js';
 import AdminNotification from '../models/adminNotifications.model.js';
+import Ban from '../models/ban.model.js';
 
 export const signUp = async (req, res, next) => {
   const { username, email, password } = req.body;
@@ -75,8 +76,26 @@ export const signIn = async (req, res, next) => {
       return next(errorHandler(403, 'Invalid credentials'));
     }
 
+    const activeBan = await Ban.findOne({
+      user: validUser._id,
+      status: 'Active',
+      endDate: { $gte: new Date() },
+    });
+
+    if (activeBan) {
+      return res.status(405).json({
+        statusCode: 405,
+        error: 'Account is banned',
+        banInfo: {
+          reason: activeBan.reason,
+          endDate: activeBan.endDate,
+          remainingTime: activeBan.endDate - new Date(),
+        },
+      });
+    }
+
     const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET, {
-      expiresIn: '1d',
+      expiresIn: '24h',
     }); // 1d = 1 day
     const { password: userPassword, ...rest } = validUser._doc; // _doc is the document that we get from the database
     res
