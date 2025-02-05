@@ -15,7 +15,7 @@ const reportSchema = new mongoose.Schema(
     contentType: {
       type: String,
       required: true,
-      enum: ['Comment', 'Post', 'Profile', 'Team', 'Spam', 'Other'],
+      enum: ['Comment', 'Post', 'Profile'],
     },
     contentId: {
       type: mongoose.Schema.Types.ObjectId,
