@@ -417,6 +417,7 @@ export const banUser = async (req, res, next) => {
 
     await Report.findByIdAndUpdate(reportId, {
       actionTaken: 'User_banned',
+      status: 'resolved',
     });
 
     res.status(200).json({ message: 'User banned successfully', ban });
