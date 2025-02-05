@@ -9,12 +9,14 @@ import {
   getUserInfoByUserId,
   getAccountByUserId,
   getAllAccounts,
+  getContentDeletedNotificationByUserId,
 } from '../controllers/user.controller.js';
 import { verifyToken } from '../utils/verifyUser.js';
 import upload from '../utils/upload.js';
 import {
   getRoleChangeNotificationByUserId,
   hasRoleChangeNotification,
+  markContentDeletedNotificationAsRead,
   markRoleChangeNotificationAsRead,
 } from '../controllers/roleChangeNotification.controller.js';
 
@@ -30,6 +32,7 @@ router.get('/get-account-id/:userId', getAccountByUserId);
 router.get('/get-comments/:id', getUserComments);
 router.get('/get-accounts', getAllAccounts);
 router.get('/has-admin-notification/:userId', hasRoleChangeNotification);
+router.get('/get-content-notif/:userId', getContentDeletedNotificationByUserId);
 router.get(
   '/get-role-change-notifications/:userId',
   getRoleChangeNotificationByUserId
@@ -37,6 +40,10 @@ router.get(
 router.post(
   '/mark-role-change-notification-as-read',
   markRoleChangeNotificationAsRead
+);
+router.post(
+  '/mark-content-notification-as-read',
+  markContentDeletedNotificationAsRead
 );
 
 export default router;
