@@ -60,7 +60,7 @@ const reportSchema = new mongoose.Schema(
     },
     actionTaken: {
       type: String,
-      enum: ['Warning', 'Content_removed', 'User_suspended', 'No_action'],
+      enum: ['Warning', 'Content_removed', 'User_banned', 'No_action'],
     },
     numberOfReports: {
       type: Number,
