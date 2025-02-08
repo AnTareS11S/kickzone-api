@@ -30,7 +30,6 @@ import {
   updateTeamForumNotification,
   updateTeamTrainingNotification,
 } from './utils/helper.js';
-import TrainingNotifications from './models/trainingNotifications.model.js';
 
 dotenv.config();
 

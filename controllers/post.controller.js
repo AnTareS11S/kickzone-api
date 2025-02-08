@@ -174,7 +174,7 @@ export const addCommentToPost = async (req, res, next) => {
 
     await originalPost.save();
 
-    res.status(201).json(savedComment);
+    res.status(200).json(savedComment);
   } catch (error) {
     next(error);
   }
