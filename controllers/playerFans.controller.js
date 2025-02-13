@@ -25,7 +25,7 @@ export const addPlayerFan = async (req, res, next) => {
 
     await player.save();
 
-    res.status(201).json(playerFan);
+    res.status(200).json(playerFan);
   } catch (error) {
     next(error);
   }
@@ -59,7 +59,7 @@ export const removePlayerFan = async (req, res, next) => {
 
     await PlayerFans.findByIdAndDelete(exisitingFan._id);
 
-    res.status(204).json();
+    res.status(200).json();
   } catch (error) {
     next(error);
   }

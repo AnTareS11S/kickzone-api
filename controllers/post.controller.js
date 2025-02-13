@@ -22,7 +22,7 @@ export const addPost = async (req, res, next) => {
       $push: { posts: newPost._id },
     });
 
-    res.status(201).json(newPost);
+    res.status(200).json(newPost);
   } catch (error) {
     next(error);
   }
@@ -240,7 +240,9 @@ export const removeLikeFromPost = async (req, res, next) => {
 
 export const deletePost = async (req, res, next) => {
   try {
-    const postToDelete = await Post.findById(req.body.id).populate('author');
+    const postToDelete = await Post.findById(req.params.postId).populate(
+      'author'
+    );
 
     if (!postToDelete) {
       return res.status(404).json({ message: 'Post not found' });
@@ -252,10 +254,10 @@ export const deletePost = async (req, res, next) => {
       });
     }
 
-    const descendantPosts = await getAllChildPosts(req.body.id);
+    const descendantPosts = await getAllChildPosts(req.params.postId);
 
     const descendantPostIds = [
-      req.body.id,
+      req.params.postId,
       ...descendantPosts.map((post) => post._id),
     ];
 
