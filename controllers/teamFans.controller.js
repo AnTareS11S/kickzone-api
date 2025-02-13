@@ -25,7 +25,7 @@ export const addTeamFan = async (req, res, next) => {
 
     await team.save();
 
-    res.status(201).json(teamFan);
+    res.status(200).json(teamFan);
   } catch (error) {
     next(error);
   }
