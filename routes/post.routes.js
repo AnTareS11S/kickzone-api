@@ -22,6 +22,6 @@ router.post('/comment/edit/:id', editComment);
 router.post('/like/:id', addLikeToPost);
 router.post('/comment/:id', addCommentToPost);
 router.post('/unlike/:id', removeLikeFromPost);
-router.delete('/delete', deletePost);
+router.delete('/delete/:postId', deletePost);
 
 export default router;
