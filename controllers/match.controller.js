@@ -477,7 +477,7 @@ export const getRecentMatchResults = async (req, res, next) => {
 
 export const getMatchOverview = async (req, res, next) => {
   try {
-    const match = await Match.findById(req.params.matchId)
+    const match = await Match.findOne({ _id: req.params.matchId })
       .populate({
         path: 'homeTeam',
         select: 'name logoUrl',
@@ -490,11 +490,15 @@ export const getMatchOverview = async (req, res, next) => {
       .populate('league', 'name -_id')
       .populate('round', 'name -_id')
       .populate('season', 'name -_id')
-      .populate('mainReferee', 'name');
+      .populate('mainReferee', 'name surname -_id');
 
     if (!match) {
       return res.status(404).json({ message: 'Match not found' });
     }
+
+    const refereeName = match.mainReferee
+      ? match.mainReferee.name + ' ' + match.mainReferee.surname
+      : null;
 
     const matchOverview = {
       matchId: match._id,
@@ -506,7 +510,7 @@ export const getMatchOverview = async (req, res, next) => {
       endDate: match.endDate,
       round: match.round.name,
       season: match.season.name,
-      mainReferee: match.mainReferee,
+      mainReferee: refereeName ?? 'Not assigned',
     };
 
     res.status(200).json(matchOverview);
