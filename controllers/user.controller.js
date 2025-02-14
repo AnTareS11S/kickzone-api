@@ -23,6 +23,16 @@ export const addUser = async (req, res, next) => {
 
     if (!req.file || !req.file.buffer) {
       const existedUser = await User.findOne({ _id: req.params.id });
+
+      if (
+        req.body.wantedRole &&
+        req.body.wantedRole.trim().toLowerCase() !==
+          existedUser.role.trim().toLowerCase()
+      ) {
+        existedUser.isRoleSet = false;
+        existedUser.save();
+      }
+
       if (existedUser) {
         const updatedUser = await User.findOneAndUpdate(
           { _id: req.params.id },
