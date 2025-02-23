@@ -2,7 +2,7 @@
   "name": "frontendapirest",
   "version": "1.0.0",
   "description": "Welcome to the kickZone API documentation. This API serves as the backend for the kickZone application, providing endpoints for managing teams, players, matches, and statistics.",
-  "main": "index.js",
+  "main": "api/index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
