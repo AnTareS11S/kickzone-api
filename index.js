@@ -60,7 +60,7 @@ app.use(
   })
 );
 
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
 const io = new Server(httpServer, {
   cors: {
@@ -474,8 +474,8 @@ app.use((err, req, res, next) => {
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
-    httpServer.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+    httpServer.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
     });
     console.log('Connected to MongoDB');
   })
