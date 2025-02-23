@@ -26,7 +26,7 @@ export const signUp = async (req, res, next) => {
 
     res
       .cookie('access_token', token, { httpOnly: true })
-      .status(201)
+      .status(200)
       .json(rest);
   } catch (error) {
     next(error);
@@ -35,14 +35,21 @@ export const signUp = async (req, res, next) => {
 
 export const checkUsername = async (req, res, next) => {
   const { username } = req.query;
-  try {
-    const user = await User.findOne({ username });
 
-    if (user) {
-      res.status(200).json({ exists: true });
-    } else {
-      res.status(200).json({ exists: false });
-    }
+  // Basic validation
+  if (!username || typeof username !== 'string') {
+    return res.status(400).json({
+      message: 'Valid username parameter is required',
+    });
+  }
+
+  try {
+    // Only check existence, don't retrieve full document
+    const exists = await User.exists({
+      username: { $regex: new RegExp(`^${username}$`, 'i') },
+    });
+
+    res.status(200).json({ exists: !!exists });
   } catch (error) {
     next(error);
   }
