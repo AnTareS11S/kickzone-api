@@ -54,8 +54,8 @@ const httpServer = createServer(app);
 
 app.use(
   cors({
-    origin: 'https://kickzone-api.onrender.com',
-    methods: ['GET', 'POST'],
+    origin: process.env.FRONTED_URL,
+    methods: ['GET', 'POST', 'DELETE'],
     credentials: true,
   })
 );
@@ -65,7 +65,7 @@ const port = process.env.PORT || 3000;
 const io = new Server(httpServer, {
   cors: {
     origin: process.env.FRONTED_URL,
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'DELETE'],
     credentials: true,
   },
 });
