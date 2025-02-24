@@ -54,7 +54,7 @@ const httpServer = createServer(app);
 
 app.use(
   cors({
-    origin: 'http://localhost:5137',
+    origin: 'http://localhost:5173',
     methods: ['GET', 'POST', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     credentials: true,
