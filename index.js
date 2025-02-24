@@ -52,7 +52,7 @@ export const s3 = new S3Client({
 const app = express();
 const httpServer = createServer(app);
 
-const whitelist = [process.env.FRONTED_URL, process.env.FRONTED_URL2];
+const whitelist = [process.env.FRONTEND_URL, process.env.FRONTEND_URL2];
 
 app.use(
   cors({
