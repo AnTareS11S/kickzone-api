@@ -54,7 +54,7 @@ const httpServer = createServer(app);
 
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: 'https://kickzone-api.onrender.com',
     methods: ['GET', 'POST'],
     credentials: true,
   })
