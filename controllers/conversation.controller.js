@@ -110,6 +110,7 @@ export const getUnreadConversationsCount = async (req, res, next) => {
         const unreadMessages = await Message.find({
           conversation: conversation._id,
           isRead: false,
+          sender: { $ne: userId },
         });
 
         if (unreadMessages.length > 0) {
