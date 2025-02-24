@@ -52,9 +52,11 @@ export const s3 = new S3Client({
 const app = express();
 const httpServer = createServer(app);
 
+const whitelist = [process.env.FRONTED_URL, process.env.FRONTED_URL2];
+
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: whitelist,
     methods: ['GET', 'POST', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     credentials: true,
@@ -66,7 +68,7 @@ const port = process.env.PORT || 3000;
 
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTED_URL,
+    origin: whitelist,
     methods: ['GET', 'POST', 'DELETE'],
     credentials: true,
   },
