@@ -108,7 +108,9 @@ export const signIn = async (req, res, next) => {
     res
       .cookie('access_token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
+        sameSite: 'none',
+        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : '',
       })
       .status(200)
       .json(rest);
