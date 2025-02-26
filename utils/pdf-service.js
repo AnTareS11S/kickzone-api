@@ -2,6 +2,8 @@ import PDFDocument from 'pdfkit-table';
 import fs from 'fs';
 import https from 'https';
 
+const CLOUDFRONT_URL = 'https://d3awt09vrts30h.cloudfront.net/';
+
 const fetchImage = async (url) => {
   try {
     const response = await fetch(url);
@@ -21,13 +23,7 @@ const buildTeamDetailsPDF = async (dataCallback, endCallback, team) => {
   doc.on('end', endCallback);
 
   try {
-    const image = 'https://d3awt09vrts30h.cloudfront.net/' + team?.logo;
-
-    const teamLogoUrl = `https://d3awt09vrts30h.cloudfront.net/${team?.logo}`;
-    const teamLogoImage = await fetchImage(teamLogoUrl);
-
-    // Pobierz pozostałe obrazy z CloudFront
-    const CLOUDFRONT_URL = 'https://d3awt09vrts30h.cloudfront.net/';
+    const teamLogoImage = await fetchImage(CLOUDFRONT_URL + team?.logo);
     const coachImage = await fetchImage(CLOUDFRONT_URL + 'coach.png');
     const leagueImage = await fetchImage(CLOUDFRONT_URL + 'league.png');
     const stadiumImage = await fetchImage(CLOUDFRONT_URL + 'stadium.png');
@@ -197,19 +193,12 @@ const buildMatchDetailsPDF = async (dataCallback, endCallback, match) => {
   };
 
   try {
-    const homeTeamImage =
-      'https://d3awt09vrts30h.cloudfront.net/' + match?.homeTeam?.logo;
-    await downloadImage(homeTeamImage, './api/utils/images/homeTeamLogo.png');
-    const homeTeamImageData = fs.readFileSync(
-      './api/utils/images/homeTeamLogo.png'
+    const homeTeamImageData = await fetchImage(
+      CLOUDFRONT_URL + match?.homeTeam?.logo
     );
 
-    const awayTeamImage =
-      'https://d3awt09vrts30h.cloudfront.net/' + match?.awayTeam?.logo;
-
-    await downloadImage(awayTeamImage, './api/utils/images/awayTeamLogo.png');
-    const awayTeamImageData = fs.readFileSync(
-      './api/utils/images/awayTeamLogo.png'
+    const awayTeamImageData = await fetchImage(
+      CLOUDFRONT_URL + match?.awayTeam?.logo
     );
 
     doc.image(homeTeamImageData, 47.64, 30, {
@@ -319,22 +308,6 @@ const buildMatchDetailsPDF = async (dataCallback, endCallback, match) => {
   } catch (error) {
     console.error('Error building PDF:', error);
   }
-};
-
-const downloadImage = async (url, filePath) => {
-  return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(filePath);
-    https
-      .get(url, (response) => {
-        response.pipe(file);
-        file.on('finish', () => {
-          file.close(resolve);
-        });
-      })
-      .on('error', (error) => {
-        fs.unlink(filePath, () => reject(error));
-      });
-  });
 };
 
 export { buildTeamDetailsPDF, buildMatchDetailsPDF };
