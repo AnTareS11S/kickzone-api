@@ -10,7 +10,10 @@ const buildTeamDetailsPDF = async (dataCallback, endCallback, team) => {
   try {
     const image = 'https://d3awt09vrts30h.cloudfront.net/' + team?.logo;
     await downloadImage(image, './api/utils/images/logo.png');
-    const imageData = fs.readFileSync('./api/utils/images/logo.png');
+    const imageUrl = `https://${process.env.BUCKET_NAME}.s3.${process.env.BUCKET_REGION}.amazonaws.com/${team?.logo}`;
+
+    // Pobierz obraz z S3
+    const imageData = await fetch(imageUrl).then((res) => res.buffer());
 
     const coachImage = fs.readFileSync('./api/utils/images/coach.png');
 
