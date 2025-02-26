@@ -155,7 +155,13 @@ export const googleAuth = async (req, res, next) => {
       });
       const { password: userPassword, ...rest } = newUser._doc;
       res
-        .cookie('access_token', token, { httpOnly: true })
+        .cookie('access_token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          domain:
+            process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+        })
         .status(200)
         .json(rest);
     }
