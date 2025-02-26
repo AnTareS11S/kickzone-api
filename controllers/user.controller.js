@@ -129,44 +129,6 @@ export const changePassword = async (req, res, next) => {
   }
 };
 
-export const getActivity = async (req, res, next) => {
-  try {
-    const userPosts = await Post.find({ author: req.params.id });
-
-    const childPostIds = userPosts.reduce((acc, userPost) => {
-      return acc.concat(userPost.children);
-    }, []);
-
-    const replies = await Post.find({
-      _id: { $in: childPostIds },
-      author: { $ne: req.params.id },
-    })
-      .populate({
-        path: 'author',
-        model: User,
-        select: 'username photo _id imageUrl',
-      })
-      .sort({ createdAt: -1 });
-
-    const likes = await Post.find({
-      _id: { $in: childPostIds },
-      likes: { $ne: [req.params.id] },
-    })
-      .populate({
-        path: 'author',
-        model: User,
-        select: 'username photo _id imageUrl',
-      })
-      .where('author')
-      .ne(req.params.id)
-      .sort({ createdAt: -1 });
-
-    res.status(200).json({ replies, likes });
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const getUserById = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id)
