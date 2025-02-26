@@ -2,6 +2,19 @@ import PDFDocument from 'pdfkit-table';
 import fs from 'fs';
 import https from 'https';
 
+const fetchImage = async (url) => {
+  try {
+    const response = await fetch(url);
+    if (!response.ok)
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  } catch (error) {
+    console.error(`Error fetching image from ${url}:`, error);
+    return null;
+  }
+};
+
 const buildTeamDetailsPDF = async (dataCallback, endCallback, team) => {
   const doc = new PDFDocument({ size: 'A4', margin: 0 });
   doc.on('data', dataCallback);
@@ -10,27 +23,21 @@ const buildTeamDetailsPDF = async (dataCallback, endCallback, team) => {
   try {
     const image = 'https://d3awt09vrts30h.cloudfront.net/' + team?.logo;
 
-    const imageUrl = `https://${process.env.BUCKET_NAME}.s3.${process.env.BUCKET_REGION}.amazonaws.com/${team?.logo}`;
+    const teamLogoUrl = `https://d3awt09vrts30h.cloudfront.net/${team?.logo}`;
+    const teamLogoImage = await fetchImage(teamLogoUrl);
 
-    // Pobierz obraz z S3
-    const response = await fetch(imageUrl);
-    const arrayBuffer = await response.arrayBuffer(); // Get the raw binary data
-    const imageData = Buffer.from(arrayBuffer); // Convert to Buffer
-
-    const coachImage = fs.readFileSync('./api/utils/images/coach.png');
-
-    const leagueImage = fs.readFileSync('./api/utils/images/league.png');
-
-    const stadiumImage = fs.readFileSync('./api/utils/images/stadium.png');
-
-    const countryImage = fs.readFileSync('./api/utils/images/country.png');
-
-    const foundedImage = fs.readFileSync('./api/utils/images/founded.png');
+    // Pobierz pozostałe obrazy z CloudFront
+    const CLOUDFRONT_URL = 'https://d3awt09vrts30h.cloudfront.net/';
+    const coachImage = await fetchImage(CLOUDFRONT_URL + 'coach.png');
+    const leagueImage = await fetchImage(CLOUDFRONT_URL + 'league.png');
+    const stadiumImage = await fetchImage(CLOUDFRONT_URL + 'stadium.png');
+    const countryImage = await fetchImage(CLOUDFRONT_URL + 'country.png');
+    const foundedImage = await fetchImage(CLOUDFRONT_URL + 'founded.png');
 
     doc.font('Times-Roman');
     doc.fontSize(24).text(team.name, { align: 'center' }, 55);
 
-    doc.image(imageData, 472.36, 30, {
+    doc.image(teamLogoImage, 472.36, 30, {
       fit: [80, 80],
       align: 'center',
       valign: 'center',
