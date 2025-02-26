@@ -104,12 +104,15 @@ export const signIn = async (req, res, next) => {
     const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET, {
       expiresIn: '24h',
     }); // 1d = 1 day
+
+    console.log('Generated Token:', token);
+
     const { password: userPassword, ...rest } = validUser._doc; // _doc is the document that we get from the database
     res
       .cookie('access_token', token, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'none',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : '',
       })
       .status(200)
