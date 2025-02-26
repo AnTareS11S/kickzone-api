@@ -13,7 +13,9 @@ const buildTeamDetailsPDF = async (dataCallback, endCallback, team) => {
     const imageUrl = `https://${process.env.BUCKET_NAME}.s3.${process.env.BUCKET_REGION}.amazonaws.com/${team?.logo}`;
 
     // Pobierz obraz z S3
-    const imageData = await fetch(imageUrl).then((res) => res.buffer());
+    const response = await fetch(imageUrl);
+    const arrayBuffer = await response.arrayBuffer(); // Get the raw binary data
+    const imageData = Buffer.from(arrayBuffer); // Convert to Buffer
 
     const coachImage = fs.readFileSync('./api/utils/images/coach.png');
 
