@@ -61,7 +61,7 @@ const whitelist = [
 app.use(
   cors({
     origin: whitelist,
-    methods: ['GET', 'POST', 'DELETE'],
+    methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     credentials: true,
     optionsSuccessStatus: 204,
@@ -73,7 +73,7 @@ const port = process.env.PORT || 3000;
 const io = new Server(httpServer, {
   cors: {
     origin: whitelist,
-    methods: ['GET', 'POST', 'DELETE'],
+    methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT', 'OPTIONS'],
     credentials: true,
   },
 });
