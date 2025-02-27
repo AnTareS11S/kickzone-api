@@ -1,39 +1,45 @@
-# KickZone API
+Here’s a revised version of your KickZone API documentation, making it more relevant to a sports-focused platform rather than an e-commerce site:  
 
-[![Deployed on Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com)
+---
 
-A RESTful API for an e-commerce platform specializing in sports shoes and accessories. The API provides endpoints for product management, user authentication, order processing, and more.
+# KickZone API  
 
-**Live API Base URL**: https://kickzone-api.onrender.com
+[![Deployed on Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com)  
 
-## Features
+A RESTful API for managing sports-related activities, including team management, player profiles, match scheduling, and user authentication.  
 
-- Product management (CRUD operations)
-- User authentication and authorization (JWT)
-- Order processing system
-- Users search
-- User profile management
-  
-## Technologies Used
+**Live API Base URL**: https://kickzone-api.onrender.com  
 
-- Node.js
-- Express.js
-- MongoDB (with Mongoose)
-- JSON Web Tokens (JWT)
-- Bcrypt for password hashing
-- Render (Hosting)
+## Features  
 
-## Getting Started
+- **Team management** (Create, Read, Update, Delete teams)  
+- **Player profiles** (Manage player data, stats, and history)  
+- **Match scheduling** (Create and manage fixtures, results, and standings)  
+- **User authentication and authorization** (JWT-based security)  
+- **User search** (Find players, teams, or other users)  
+- **User profile management** (Update personal details and preferences)  
 
-### Prerequisites
+## Technologies Used  
 
-- Node.js (v14+)
-- npm
-- MongoDB Atlas account or local MongoDB installation
+- Node.js  
+- Express.js  
+- MongoDB (Mongoose)  
+- JSON Web Tokens (JWT)  
+- Bcrypt for password hashing  
+- Render (Hosting)  
 
-### Installation
+## Getting Started  
 
-1. Clone the repository:
+### Prerequisites  
+
+- Node.js (v14+)  
+- npm  
+- MongoDB Atlas account or local MongoDB installation  
+
+### Installation  
+
+1. Clone the repository:  
 ```bash
 git clone https://github.com/AnTareS11S/kickzone-api.git
 cd kickzone-api
+```
