@@ -111,10 +111,11 @@ export const signIn = async (req, res, next) => {
     res
       .cookie('access_token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        domain:
-          process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+        secure: true, // Must be true for Vercel
+        sameSite: 'none', // Must be 'none' for cross-site cookies
+        path: '/', // Ensure cookie is available across all paths
+        domain: undefined, // Use env variable for flexibility
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
       })
       .status(200)
       .json(rest);
