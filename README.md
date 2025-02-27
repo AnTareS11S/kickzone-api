@@ -44,7 +44,3 @@ A RESTful API for managing sports-related activities, including team management,
 git clone https://github.com/AnTareS11S/kickzone-api.git
 cd kickzone-api
 ```
-
----
-
-This version aligns better with a sports management system rather than an e-commerce platform. Let me know if you want further refinements! 🚀
