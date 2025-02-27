@@ -54,13 +54,11 @@ export const addUser = async (req, res, next) => {
     if (existedUser) {
       existedUser.photo ? await deleteImageFromS3(existedUser.photo) : null;
 
-      const updatedUser = await User.findByIdAndUpdate(
-        req.params.id,
+      const updatedUser = await User.findOneAndUpdate(
+        { _id: req.params.id },
         {
-          $set: {
-            ...req.body,
-            photo: photoName,
-          },
+          ...req.body,
+          photo: photoName,
         },
         { new: true }
       );
