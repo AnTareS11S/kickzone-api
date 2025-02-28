@@ -6,7 +6,7 @@ const postSchema = new mongoose.Schema(
       type: String,
       trim: true,
       minlength: 2,
-      maxlength: 30,
+      maxlength: 60,
     },
     author: {
       type: mongoose.Schema.Types.ObjectId,
