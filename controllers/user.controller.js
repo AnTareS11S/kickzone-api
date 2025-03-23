@@ -10,7 +10,7 @@ import Coach from '../models/coach.model.js';
 import Conversation from '../models/conversation.model.js';
 import Admin from '../models/admin.model.js';
 import ContentDeleted from '../models/contentDeleted.model.js';
-import TeamRequestForm from '../../client/src/components/home/team/TeamRequestForm.jsx';
+import RequestTeamForm from '../models/requestTeamForm.model.js';
 
 export const addUser = async (req, res, next) => {
   if (req.user.id !== req.params.id) {
@@ -338,12 +338,12 @@ export const getContentDeletedNotificationByUserId = async (req, res, next) => {
   }
 };
 
-export const addTeamRequestForm = async (req, res, next) => {
+export const addRequestTeamForm = async (req, res, next) => {
   try {
-    const newTeamRequestForm = new TeamRequestForm(req.body);
+    const newRequestTeamForm = new RequestTeamForm(req.body);
 
-    await newTeamRequestForm.save();
-    res.status(200).json(newTeamRequestForm);
+    await newRequestTeamForm.save();
+    res.status(200).json(newRequestTeamForm);
   } catch (error) {
     next(error);
   }
