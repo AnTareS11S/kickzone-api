@@ -9,6 +9,7 @@ import {
   getAccountByUserId,
   getAllAccounts,
   getContentDeletedNotificationByUserId,
+  addTeamRequestForm,
 } from '../controllers/user.controller.js';
 import { verifyToken } from '../utils/verifyUser.js';
 import upload from '../utils/upload.js';
@@ -43,5 +44,6 @@ router.post(
   '/mark-content-notification-as-read',
   markContentDeletedNotificationAsRead
 );
+router.post('/add/team-request-form', addTeamRequestForm);
 
 export default router;
