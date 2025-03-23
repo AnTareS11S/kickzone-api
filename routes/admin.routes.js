@@ -137,6 +137,10 @@ import {
   getReports,
   updateReport,
 } from '../controllers/report.controller.js';
+import {
+  deleteRequestTeamForm,
+  getRequestTeamForms,
+} from '../controllers/user.controller.js';
 
 const customUpload = (req, res, next) => {
   if (
@@ -277,5 +281,8 @@ router.get('/contactOne', getOneContact);
 router.post('/contact/add', customUpload, addContact);
 router.post('/contact/edit/:id', customUpload, editContact);
 router.delete('/contact/delete/:id', deleteContact);
+// Team Request Form
+router.get('/team-requests', getRequestTeamForms);
+router.delete('/team-request/delete/:id', deleteRequestTeamForm);
 
 export default router;
