@@ -138,6 +138,7 @@ import {
   updateReport,
 } from '../controllers/report.controller.js';
 import {
+  addRequestTeamForm,
   deleteRequestTeamForm,
   getRequestTeamForms,
 } from '../controllers/user.controller.js';
@@ -282,6 +283,7 @@ router.post('/contact/add', customUpload, addContact);
 router.post('/contact/edit/:id', customUpload, editContact);
 router.delete('/contact/delete/:id', deleteContact);
 // Team Request Form
+router.post('/add/team-request-form', addRequestTeamForm);
 router.get('/team-requests', getRequestTeamForms);
 router.delete('/team-request/delete/:id', deleteRequestTeamForm);
 
