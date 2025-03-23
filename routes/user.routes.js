@@ -44,6 +44,6 @@ router.post(
   '/mark-content-notification-as-read',
   markContentDeletedNotificationAsRead
 );
-router.post('/add/team-request-form', addRequestTeamForm);
+router.post('/add/team-request-form', verifyToken, addRequestTeamForm);
 
 export default router;
