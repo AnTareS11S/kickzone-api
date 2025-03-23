@@ -348,3 +348,22 @@ export const addRequestTeamForm = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getRequestTeamForms = async (req, res, next) => {
+  try {
+    const requestTeamForms = await RequestTeamForm.find();
+
+    res.status(200).json(requestTeamForms);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteRequestTeamForm = async (req, res, next) => {
+  try {
+    await RequestTeamForm.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Request team form deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
