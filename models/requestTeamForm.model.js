@@ -52,6 +52,10 @@ const requestTeamFormSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
