@@ -12,6 +12,7 @@ import mongoose from 'mongoose';
 import Notification from '../models/notifications.model.js';
 import Ban from '../models/ban.model.js';
 import ContentDeleted from '../models/contentDeleted.model.js';
+import RequestTeamForm from '../models/requestTeamForm.model.js';
 
 export const addAdmin = async (req, res, next) => {
   try {
@@ -260,7 +261,13 @@ export const getAdminNotifications = async (req, res, next) => {
 
     const reportsCount = await Report.countDocuments({ status: 'Pending' });
 
-    res.status(200).json({ notificationsCount, reportsCount });
+    const requestTeamFormCount = await RequestTeamForm.countDocuments({
+      isRead: false,
+    });
+
+    res
+      .status(200)
+      .json({ notificationsCount, reportsCount, requestTeamFormCount });
   } catch (error) {
     next(error);
   }
