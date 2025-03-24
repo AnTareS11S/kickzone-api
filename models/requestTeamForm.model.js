@@ -31,8 +31,11 @@ const requestTeamFormSchema = new mongoose.Schema(
       maxlength: 50,
     },
     country: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Country',
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 50,
     },
     city: {
       type: String,
