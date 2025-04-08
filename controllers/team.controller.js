@@ -261,7 +261,7 @@ export const addPlayerToTeam = async (req, res, next) => {
     const player = await Player.findById(req.body.player);
 
     if (team) {
-      player.currentTeam = team._id;
+      player.currentTeam = team?._id;
       player.wantedTeam = null;
       await player.save();
       team.players.push(req.body.player);
