@@ -175,7 +175,7 @@ router.get('/team', getAllTeams);
 router.get('/teams/no-league', getTeamsWithoutLeague);
 router.post('/team/add', customUpload, addTeam);
 router.post('/team/edit/:id', customUpload, editTeam);
-router.post('/team-player/:id/add', addPlayerToTeam);
+router.post('/team-player/:id/add', customUpload, addPlayerToTeam);
 router.delete('/team/delete/:id', deleteTeam);
 router.delete('/team-player/delete/:id', deletePlayerFromTeam);
 // Coach
